@@ -1,0 +1,40 @@
+ #define OVOC_FERMER_TOUS_VOLETS    <-> _DI; /* Ordre vocal de fermeture de tous les volets */
+ #define OVOC_OUVRIR_TOUS_VOLETS    <-> _DI; /* Ordre vocal d'ouverture de tous les volets */
+ #define BP_FERMER_TOUS_VOLETS      <-> _DI; /* Appui Bouton Poussoir fermeture de tous les volets */
+ #define BP_OUVRIR_TOUS_VOLETS      <-> _DI; /* Appui Bouton Poussoir ouverture de tous les volets */
+ #define O_DLS_ALL_CLOSE            <-> _DI; /* Commande DLS Fermeture de tous les volets */
+ #define O_DLS_ALL_OPEN             <-> _DI; /* Commande DLS Ouverture de tous les volets */
+ #define OSMS_FERMER_TOUS_VOLETS    <-> _DI; /* Commande SMS Fermeture de tous les volets */
+ #define OSMS_OUVRIR_TOUS_VOLETS    <-> _DI; /* Commande SMS Ouverture de tous les volets */
+ #define OSMS_FERMER_VOLETS_LUCAS   <-> _DI; /* Commande SMS Fermeture des volet de Lucas */
+ #define OSMS_OUVRIR_VOLETS_LUCAS   <-> _DI; /* Commande SMS Ouverture des volets de Lucas */
+ #define OSMS_FERMER_VOLETS_SALON   <-> _DI; /* Commande SMS Fermeture des volet du salon */
+ #define OSMS_OUVRIR_VOLETS_SALON   <-> _DI; /* Commande SMS Ouverture des volets du salon */
+ #define HOR_FERMER_TOUS_VOLETS     <-> _HORLOGE(libelle="Heure de fermeture de tous les volets");
+
+ #link VR_SALG:VISUEL_VOLET;
+ #link VR_SALD:VISUEL_VOLET;
+ #link VR_CH1:VISUEL_VOLET;
+ #link VR_CH2G:VISUEL_VOLET;
+ #link VR_CH2D:VISUEL_VOLET;
+ #link VR_CHRDC:VISUEL_VOLET;
+
+ #define VISUEL_ALL_CLOSE           <-> _I(forme="volet_roulant", mode="tout_fermer", libelle="Tout fermer");
+ #define VISUEL_ALL_OPEN            <-> _I(forme="volet_roulant", mode="tout_fermer", libelle="Tout ouvrir");
+
+/*-------------------------------------------------------------- Volet CHambre -------------------------------------------------*/
+ - OSMS_FERMER_TOUS_VOLETS + OVOC_FERMER_TOUS_VOLETS + BP_FERMER_TOUS_VOLETS + O_DLS_ALL_CLOSE + VISUEL_ALL_CLOSE_CLIC
+    -> VR_CHRDC:ODLS_FERME, VR_CH1:ODLS_FERME, VR_CH2G:ODLS_FERME, VR_CH2D:ODLS_FERME, VR_SALG:ODLS_FERME, VR_SALD:ODLS_FERME;
+
+- OSMS_OUVRIR_TOUS_VOLETS + OVOC_OUVRIR_TOUS_VOLETS + BP_OUVRIR_TOUS_VOLETS + O_DLS_ALL_OPEN  + VISUEL_ALL_OPEN_CLIC
+    -> VR_CHRDC:ODLS_OUVRE, VR_CH1:ODLS_OUVRE, VR_CH2G:ODLS_OUVRE, VR_CH2D:ODLS_OUVRE, VR_SALG:ODLS_OUVRE, VR_SALD:ODLS_OUVRE;
+
+   
+/*-------------------------------------------------------------- Volets Lucas --------------------------------------------------*/
+ - OSMS_FERMER_VOLETS_LUCAS -> VR_CH2G:ODLS_FERME, VR_CH2D:ODLS_FERME;
+ - OSMS_OUVRIR_VOLETS_LUCAS -> VR_CH2G:ODLS_OUVRE, VR_CH2D:ODLS_OUVRE;
+
+/*-------------------------------------------------------------- Volets Salon --------------------------------------------------*/
+ - OSMS_FERMER_VOLETS_SALON -> VR_SALG:ODLS_FERME, VR_SALD:ODLS_FERME;
+ - OSMS_OUVRIR_VOLETS_SALON -> VR_SALG:ODLS_OUVRE, VR_SALD:ODLS_OUVRE;
+ 
