@@ -1,0 +1,164 @@
+
+  #define OTXT_START          <-> _DI; /* Demande SMS de chauffe pour 1h */
+  #define OTXT_STOP           <-> _DI; /* Ordre SMS d'arret chauffage */
+  #define OTXT_AUTO           <-> _DI; /* Mode automatique Chauffage engagé via SMS */
+
+  #define AC_VANNE_POWER      <-> _DO; /* Vanne conduite chauffage chaudiere */
+  #define AC_VANNE_PILOTE     <-> _DO; /* Vanne conduite chauffage chaudiere */
+  #define WTD_VANNE_MANOEUVRE <-> _WATCHDOG(libelle="Watchdog de manoeuvre vanne chauffage chaudiere", consigne=200 );
+  
+  #define CALCUL_MODE_GAZ     <-> _M(libelle="Calcul du mode d'energie GAZ");
+  #define CALCUL_MODE_PAC     <-> _M(libelle="Calcul du mode d'energie PAC");
+  #define MODE_GAZ            <-> _B(groupe=2,libelle="Chauffage par la chaudiere gaz");
+  #define MODE_PAC            <-> _B(groupe=2,libelle="Chauffage par la pompe a chaleur");
+ 
+  #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
+  #define MSG_MODE_SAUTO      <-> _MSG(type=etat,libelle="Mode semi-automatique engagé");
+  #define MSG_MODE_MANU       <-> _MSG(type=etat,libelle="Mode manuel engagé");
+
+  #define MSG_VERROU_TEMP_BALLON_TB     <-> _MSG(type=defaut,libelle="Température ballon trop basse ($TEMP:BALLON_HAUT): Chauffe impossible.", notif_sms);
+  #define MSG_VERROU_TEMP_JARDIN_TH     <-> _MSG(type=etat,libelle="Temp. jardin trop haute ($TEMP:JARDIN): Chauffe en arret prioritaire.", notif_sms);
+  #define MSG_VERROU_TEMP_MUR_SUD       <-> _MSG(type=etat,libelle="Temp. mur sud trop basse ($TEMP:MUR_SUD): Chauffe en marche forcée.", notif_sms);
+  #define MSG_VERROU_OUVRANT_NOT_CLOSED <-> _MSG(type=defaut,libelle="Un ouvrant est ouvert: Chauffe en arret prioritaire.", notif_sms);
+  #define MSG_DMD_EXT_CHAUFFE           <-> _MSG(type=etat,libelle="Demande externe de chauffe pour 1h", notif_sms);
+  #define MSG_CHAUFFE_ON_GAZ            <-> _MSG(type=etat,libelle="Chauffage central sur GAZ (Temp=$TEMP:JARDIN)", notif_sms);
+  #define MSG_CHAUFFE_ON_PAC            <-> _MSG(type=etat,libelle="Chauffage central sur PAC (Temp=$TEMP:JARDIN)", notif_sms);
+
+  #define VISU_MODE_AUTO            <-> _I(forme="auto_manu",libelle="Mode de fonctionnement du chauffage");
+  #define VISUEL_MODE_ENERGIE       <-> _I(forme="energie",mode="edf",libelle="Energie Source");
+  #define VISU_BOUTON_IO            <-> _I(forme="led",libelle="Activer ou Désactiver le chauffage");
+  #define VISU_RADIATEUR            <-> _I(forme="radiateur",libelle="Radiateurs");
+
+  #define MODE_AUTO                 <-> _B(groupe=1,libelle="Mode automatique");
+  #define MODE_SAUTO                <-> _B(groupe=1,libelle="Mode semi-automatique");
+  #define MODE_MANU                 <-> _B(groupe=1,libelle="Mode manuel");
+  #define DMD_EXT_CHAUFFE           <-> _B(libelle="Demande exterieure de chauffe");
+
+  #define ME_WANT_CHAUFFAGE         <-> _B(libelle="Etat attendu du TL (0=ouvert, 1=ferme)");
+  #define VERROU_TEMP_BALLON_TB     <-> _B(libelle="Verrou de temperature ballon trop basse");
+  #define VERROU_TEMP_JARDIN_TH     <-> _B(libelle="Verrou de temperature jardin trop haute");
+  #define VERROU_TEMP_MUR_SUD       <-> _B(libelle="Verrou de temperature mur sud trop basse");
+  #define VERROU_OUVRANT_NOT_CLOSED <-> _B(libelle="Verrou: un des ouvrants est ouvert");
+  #define TR_CHAUFFE_EXT            <-> _T(daa=36000,dma=0,dMa=0,dad=0,libelle="Temporisation de chauffe pendant 1h sur demande externe");
+
+  - _START -> MODE_AUTO;
+  - _TRUE  -> MEMSSB_VEILLE;
+
+/******************************************/
+/* Gestion de la source d"energie         */
+/******************************************/
+  - VISUEL_MODE_ENERGIE_CLIC ->
+    { switch
+       | - MODE_GAZ -> MODE_PAC;
+       | -          -> MODE_GAZ;
+    }
+
+/* Critères de forcage GAZ  */
+
+  - TEMP:JARDIN < 8.0        -> CALCUL_MODE_GAZ;
+  - CALCUL_MODE_GAZ(edge_up) -> MODE_GAZ;
+
+  - TEMP:JARDIN > 10.0       -> CALCUL_MODE_PAC;
+  - CALCUL_MODE_PAC(edge_up) -> MODE_PAC;
+
+  switch
+   | - MODE_GAZ -> VISUEL_MODE_ENERGIE(mode="gaz", libelle="Chauffage en Source GAZ"), MSG_CHAUFFE_ON_GAZ;
+   | - MODE_PAC -> VISUEL_MODE_ENERGIE(mode="edf", libelle="Chauffage en Source PAC"), MSG_CHAUFFE_ON_PAC;
+   | -          -> VISUEL_MODE_ENERGIE(disable, libelle="Source inconnue");
+
+/******************************************/
+/* Gestion de la vanne chaudiere          */
+/******************************************/
+ - MODE_PAC(edge_up) + MODE_GAZ(edge_up) + _START
+                                  -> WTD_VANNE_MANOEUVRE; /* Demande de manoeuvre: sur action user ou sur recompil */
+ - WTD_VANNE_MANOEUVRE            -> AC_VANNE_POWER;
+ - WTD_VANNE_MANOEUVRE . MODE_GAZ -> AC_VANNE_PILOTE;
+ - WTD_VANNE_MANOEUVRE . MODE_PAC ->/AC_VANNE_PILOTE;
+ -/WTD_VANNE_MANOEUVRE            ->/AC_VANNE_POWER, /AC_VANNE_PILOTE;
+ 
+/****************************/
+/* Critères de verrouillage */
+/****************************/ 
+  - TEMP:BALLON_HAUT <= 30.0 -- daa=3000 -> VERROU_TEMP_BALLON_TB; /* Verrou si température basse plus de 5 minutes */
+  - TEMP:BALLON_HAUT >  30.0 ->/VERROU_TEMP_BALLON_TB;
+  - VERROU_TEMP_BALLON_TB    -> MSG_VERROU_TEMP_BALLON_TB;
+
+  - TEMP:JARDIN >=20.0    -> VERROU_TEMP_JARDIN_TH;
+  - TEMP:JARDIN < 19.0    ->/VERROU_TEMP_JARDIN_TH;
+  - VERROU_TEMP_JARDIN_TH -> MSG_VERROU_TEMP_JARDIN_TH;
+
+  - TEMP:MUR_SUD <= 00.0   -> VERROU_TEMP_MUR_SUD;
+  - TEMP:MUR_SUD >  04.0   ->/VERROU_TEMP_MUR_SUD;
+  - VERROU_TEMP_MUR_SUD    -> MSG_VERROU_TEMP_MUR_SUD;
+
+  -/ALL_OUVRANTS:ALL_CLOSED -- daa=3000 -> VERROU_OUVRANT_NOT_CLOSED; /* Si une ouverture de plus de 5 minutes */
+  - ALL_OUVRANTS:ALL_CLOSED             ->/VERROU_OUVRANT_NOT_CLOSED;
+  - VERROU_OUVRANT_NOT_CLOSED           -> MSG_VERROU_OUVRANT_NOT_CLOSED;
+  
+/***************************************/
+/* Gestion du mode automatique ou non  */
+/***************************************/
+  - VISU_MODE_AUTO_CLIC  ->
+    { switch
+       | - MODE_AUTO  . POMPE_PAC:DI_POS_TELE -> MODE_SAUTO, ME_WANT_CHAUFFAGE;
+       | - MODE_AUTO  ./POMPE_PAC:DI_POS_TELE -> MODE_SAUTO,/ME_WANT_CHAUFFAGE;
+       | - MODE_SAUTO . POMPE_PAC:DI_POS_TELE -> MODE_MANU, ME_WANT_CHAUFFAGE;
+       | - MODE_SAUTO ./POMPE_PAC:DI_POS_TELE -> MODE_MANU,/ME_WANT_CHAUFFAGE;
+       | -                                    -> MODE_AUTO;
+    }
+
+  - OTXT_STOP + OTXT_START                  ->  MODE_SAUTO;
+  - OTXT_AUTO                               ->  MODE_AUTO;
+
+  - MODE_SAUTO . _HEURE = 00:00 -> MODE_AUTO; /* Retour en AUTO si mode SAUTO */
+  - MODE_AUTO                   -> MSG_MODE_AUTO,  VISU_MODE_AUTO(libelle="Mode AUTO engagé", mode="auto");
+  - MODE_SAUTO                  -> MSG_MODE_SAUTO, VISU_MODE_AUTO(libelle="Mode Semi-Auto", mode="sauto");
+  - MODE_MANU                   -> MSG_MODE_MANU,  VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu",cligno);
+
+/*************************************/
+/* Demande de chauffe exceptionnelle */
+/*************************************/
+  - DMD_EXT_CHAUFFE . VISU_BOUTON_IO_CLIC          ->/DMD_EXT_CHAUFFE;
+  - MODE_AUTO . (OTXT_START + VISU_BOUTON_IO_CLIC) -> DMD_EXT_CHAUFFE;
+  - DMD_EXT_CHAUFFE                                -> TR_CHAUFFE_EXT, MSG_DMD_EXT_CHAUFFE;
+  -/MODE_AUTO + TR_CHAUFFE_EXT                     ->/DMD_EXT_CHAUFFE;
+
+/**************************************************/
+/* CALCUL ETAT ATTENDU TELERUPTEUR en mode manuel */
+/**************************************************/
+  - MODE_SAUTO + MODE_MANU ->
+     { switch
+        | - OTXT_STOP                                 ->/ME_WANT_CHAUFFAGE;
+        | - OTXT_START                                -> ME_WANT_CHAUFFAGE;
+        | - VISU_BOUTON_IO_CLIC . /ME_WANT_CHAUFFAGE  -> ME_WANT_CHAUFFAGE;
+        | - VISU_BOUTON_IO_CLIC .  ME_WANT_CHAUFFAGE  ->/ME_WANT_CHAUFFAGE;
+        | -                                           ->_NOP;
+     }
+
+/************************************************/
+/* CALCUL ETAT ATTENDU TELERUPTEUR en mode auto */
+/************************************************/
+ - MODE_AUTO ->
+     { switch
+        | - VERROU_TEMP_MUR_SUD                       -> ME_WANT_CHAUFFAGE;  /* Chauffage obligatoire si temp ext < 2° */
+        | - VERROU_TEMP_BALLON_TB                     ->/ME_WANT_CHAUFFAGE;  /* Si verrou temp trop basse ballon */
+        | - DMD_EXT_CHAUFFE                           -> ME_WANT_CHAUFFAGE;  /* Si demande de chauffe externe */
+        | - MAISON:MODE_VALISE                        ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
+        | - MAISON:MODE_AVION                         ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
+        | - _HEURE >= 05:30 . _HEURE <= 07:00         -> ME_WANT_CHAUFFAGE;  /* Chauffage obligatoire de 5 à 8 pour la salle de bain ! */
+        | - VERROU_OUVRANT_NOT_CLOSED                 ->/ME_WANT_CHAUFFAGE;  /* Chauffage interdit si un ouvrant est ouvert */
+        | - VERROU_TEMP_JARDIN_TH                     ->/ME_WANT_CHAUFFAGE;  /* Si la température du jardin est trop haute */
+        | - _HEURE >= 07:00 . _HEURE <= 21:30         -> ME_WANT_CHAUFFAGE;
+        | - -> /ME_WANT_CHAUFFAGE;
+     }
+
+ switch
+   | - POMPE_PAC:DI_POS_TELE  -> VISU_BOUTON_IO(libelle="Chauffage activé",    color=vert);
+   | - MODE_AUTO              -> VISU_BOUTON_IO(libelle="Chauffer pour 1h",    color=gris);
+   | -                        -> VISU_BOUTON_IO(libelle="Chauffage désactivé", color=rouge);
+
+ switch
+  | - POMPE_PAC:DI_POS_TELE . TEMP:BALLON_HAUT >=25.0 -> VISU_RADIATEUR(mode="chaud", libelle="Radiateur chauffant");
+  | - POMPE_PAC:DI_POS_TELE . TEMP:BALLON_HAUT < 25.0 -> VISU_RADIATEUR(mode="clim",  libelle="Radiateur refroidissant");
+  | -                                                 -> VISU_RADIATEUR(mode="froid", libelle="Radiateur à l'arrêt");
+
