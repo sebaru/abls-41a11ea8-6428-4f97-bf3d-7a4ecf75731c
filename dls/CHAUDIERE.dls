@@ -1,0 +1,174 @@
+/******************************************************************************************************************************/
+/* Gestion d'un télérupteur full automatique orienté pilotage lumière                                                         */
+/*                                                                                                                            */
+/* Matériel                                                                                                                   */
+/*  - Télérupteur Legrand 412429 par exemple, mais peut fonctionner avec tous type de télérupteur équivalent                  */
+/*  - Impulsion de commande de 0.3 seconde                                                                                    */
+/*                                                                                                                            */
+/* Fonctionnalités                                                                                                            */
+/*  - Allumage/Extinction depuis une commande TXT (SMS ou IMSG)                                                               */
+/*  - Allumage/Extinction depuis une commande VOCALE                                                                          */
+/*  - Allumage/Extinction depuis une commande SYNoptique                                                                      */
+/*  - Allumage/Extinction depuis une commande DLS                                                                             */
+/*  - Gestion des défauts travail et repos                                                                                    */
+/*  - Pas d'alarme/alerte/danger/derangement                                                                                  */
+/*  - Pas de maintenance                                                                                                      */
+/*                                                                                                                            */
+/*                                               Sébastien Lefevre - sebastien.lefevre@abls-habitat.fr    24.10.2019 09:27:58 */
+/******************************************************************************************************************************/
+
+/* Bits de consommation du module */
+  #define DI_POS_TELE        <-> _E; /* Position du télérupteur */
+  #define OTXT_START         <-> _E; /* Demande SMS de chauffe pour 1h */
+  #define OTXT_STOP          <-> _E; /* Ordre SMS d'arret chauffage */
+  #define OTXT_AUTO          <-> _E; /* Mode automatique Chauffage engagé via SMS */
+  #define ME_WANT_TELE       <-> _B(libelle="Etat attendu du TL (0=ouvert, 1=ferme)");
+
+  /* Bits de production du module */
+  #define DO_ACT_TELE        <-> _A; /* Sortie physique de pilotage du télérupteur, Ex: Legrand 412412 */
+  #define MDEF_REPOS_PAC     <-> _B(libelle="Memorisation du defaut repos non acquitte du TL");
+  #define MDEF_REPOS_F_PAC   <-> _B(libelle="Memorisation du defaut repos acquitte (Fixe) du TL");
+  #define MDEF_TRAVAIL_PAC   <-> _B(libelle="Memorisation du defaut travail non acquitte du TL");
+  #define MDEF_TRAVAIL_F_PAC <-> _B(libelle="Memorisation du defaut travail acquitte (Fixe) du TL");
+  #define CH_CHAUDIERE       <-> _CH(libelle="Temps de marche Chaudière");
+  #define CI_CHAUDIERE       <-> _CI(libelle="Compteur de manoeuvre TL Chaudière");
+  #define DMD_EXT_CHAUFFE    <-> _B(libelle="Demande exterieure de chauffe");
+
+  #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
+  #define MSG_MODE_MANU       <-> _MSG(type=etat,libelle="Mode manuel engagé");
+  #define MSG_ON              <-> _MSG(type=etat,libelle="Chaudière activée");
+  #define MSG_OFF             <-> _MSG(type=etat,libelle="Chaudière désactivée");
+  #define MSG_DEF_REPOS       <-> _MSG(type=defaut,libelle="Défaut repos TL Chaudière");
+  #define MSG_DEF_TRAVAIL     <-> _MSG(type=defaut,libelle="Défaut travail TL Chaudière");
+  #define MSG_DMD_EXT_CHAUFFE <-> _MSG(type=etat,libelle="Demande externe de chauffe pour 1h");
+
+  #define VISU_MODE_AUTO      <-> _I(forme="auto_manu",libelle="Mode de fonctionnement du chauffage");
+  #define VISU_POS_TELE       <-> _I(forme="chaudiere_gaz",libelle="Chaudière GAZ");
+
+  /* Bits purement internes au module */
+  #define MODE_AUTO          <-> _B(libelle="Mode automatique ou manuel");
+  #define TR_DEF_TELE        <-> _T(daa=   20,dma=0,dMa=0,dad=0,libelle="Temporisation de détection de défaut sur Pompe PAC");
+  #define TITELE             <-> _T(daa=    0,dma=0,dMa=3,dad=0,libelle="Temporisation d'impulsion de manoeuvre du TL PAC");
+  #define ME_ACT_TELE        <-> _B(libelle="Demande de manoeuvre du TL (changement d'etat)");
+  #define TR_CHAUFFE_EXT     <-> _T(daa=36000,dma=0,dMa=0,dad=0,libelle="Temporisation de chauffe pendant 1h sur demande externe");
+ 
+                                    /*******************************************/
+ /***********************************                 EVENEMENTS                ***********************************/
+                                    /*******************************************/
+  /* Start */
+
+ - _START -> MODE_AUTO;
+
+
+                                    /*******************************************/
+ /***********************************        SYNTHESES DEFAUTS ET ALARMES       ***********************************/
+                                    /*******************************************/
+
+/* SYNTHESES DEFAUTS ---------------------------------------------------------*/
+ /* DEFAUTS */
+  - MDEF_REPOS_PAC + MDEF_TRAVAIL_PAC     -> MEMSA_DEFAUT;
+ 
+ /* DEFAUTS FIXES */
+  - MDEF_REPOS_F_PAC + MDEF_TRAVAIL_F_PAC -> MEMSA_DEFAUT_FIXE;
+ 
+                                  /********************************************/
+/**********************************         COMPTE RENDUS DES VIGNETTES        ***********************************/
+                                  /********************************************/
+/* SECURITE DES BIENS --------------------------------------------------------*/
+  - _TRUE -> MEMSSB_VEILLE;
+
+                                    /*******************************************/
+ /***********************************              FONCTIONS PILOTEES           ***********************************/
+                                    /*******************************************/
+ 
+ /* ORDRES DU MODULE ----------------------------------------------------------*/
+ 
+ /* Gestion du mode automatique ou non  */
+  - VISU_MODE_AUTO_CLIC  ->
+    { switch
+       | - MODE_AUTO . DI_POS_TELE -> /MODE_AUTO, ME_WANT_TELE;
+       | - MODE_AUTO ./DI_POS_TELE -> /MODE_AUTO,/ME_WANT_TELE;
+       | -                         ->  MODE_AUTO;
+    }
+
+  - OTXT_STOP + OTXT_START          -> /MODE_AUTO;
+  - OTXT_AUTO                       ->  MODE_AUTO;
+
+/*************************************/
+/* Demande de chauffe exceptionnelle */
+/*************************************/
+  - MODE_AUTO . VISU_POS_TELE_CLIC ->
+    { switch
+       | - /DMD_EXT_CHAUFFE -> DMD_EXT_CHAUFFE;
+       | -                  ->/DMD_EXT_CHAUFFE;
+    }
+  - DMD_EXT_CHAUFFE                -> TR_CHAUFFE_EXT, MSG_DMD_EXT_CHAUFFE;
+  -/MODE_AUTO + TR_CHAUFFE_EXT     ->/DMD_EXT_CHAUFFE;
+  
+  
+ /* CALCUL ETAT ATTENDU TELERUPTEUR en mode manuel */
+   - /MODE_AUTO ./ME_ACT_TELE ->
+     { switch
+        | - OTXT_STOP                               ->/ME_WANT_TELE;
+        | - OTXT_START                              -> ME_WANT_TELE;
+        | - VISU_POS_TELE_CLIC . /ME_WANT_TELE      -> ME_WANT_TELE;
+        | - VISU_POS_TELE_CLIC .  ME_WANT_TELE      ->/ME_WANT_TELE;
+        | - -> _NOP;
+     }
+
+ /* CALCUL ETAT ATTENDU TELERUPTEUR en mode auto */
+   - MODE_AUTO ./ME_ACT_TELE ->
+     { switch
+        | - DMD_EXT_CHAUFFE                        -> ME_WANT_TELE;
+        | - CHAUFFAGE_CMDE:ME_WANT_CHAUFFAGE . CHAUFFAGE_CMDE:MODE_GAZ 
+                                                   -> ME_WANT_TELE;
+        | -/MAISON:MODE_PRESENT                    ->/ME_WANT_TELE;
+        | - (_HEURE >= 06:00 . _HEURE <= 08:00) +
+            (_HEURE >= 18:00 . _HEURE <= 21:00)    -> ME_WANT_TELE;                        /* Chauffage obligatoire pour la douche ! */
+        | - (_SAMEDI + _DIMANCHE) .
+            ( (_HEURE >= 08:00 . _HEURE <= 09:00 ) +
+              (_HEURE >= 21:00 . _HEURE <= 22:00)) -> ME_WANT_TELE;                        /* Chauffage obligatoire la douche ! */
+        | - -> /ME_WANT_TELE;
+     }
+
+/* DETECTION DIFFERENCE ETAT ATTENDU ET ETAT REEL */
+  - MEMSA_OK . /ME_ACT_TELE .  ME_WANT_TELE . /DI_POS_TELE -> ME_ACT_TELE;
+  - MEMSA_OK . /ME_ACT_TELE . /ME_WANT_TELE .  DI_POS_TELE -> ME_ACT_TELE;
+ 
+ /* PILOTAGE TELE SUR COMMANDE DE MANOEUVRE */
+  - ME_ACT_TELE        -> TITELE, TR_DEF_TELE, CI_CHAUDIERE;
+  switch
+   | - TITELE . MEMSA_OK -> DO_ACT_TELE;
+   | -                   ->/DO_ACT_TELE;
+ 
+ /* FIN DE MANOEUVRE */
+  - TR_DEF_TELE  -> /ME_ACT_TELE;
+  -/MEMSA_OK     -> /ME_ACT_TELE;
+
+ /* DETECTION DES DEFAUTS */
+  - TR_DEF_TELE . /ME_WANT_TELE . DI_POS_TELE . /MDEF_REPOS_F_PAC
+                                      -> MDEF_REPOS_PAC;            /* Détection Discordance Repos du Télérupteur */
+  - (OSYN_ACQUIT+VISU_POS_TELE_CLIC) . MDEF_REPOS_PAC      ->/MDEF_REPOS_PAC, MDEF_REPOS_F_PAC;                    /* Acquit du défaut */
+  - /*/DI_POS_TELE .*/ MDEF_REPOS_F_PAC   ->/MDEF_REPOS_F_PAC;                               /* Suppression du défaut */
+ 
+  - TR_DEF_TELE .  ME_WANT_TELE . /DI_POS_TELE . /MDEF_TRAVAIL_F_PAC
+                                      -> MDEF_TRAVAIL_PAC;        /* Détection Discordance Travail du Télérupteur */
+  - (OSYN_ACQUIT+VISU_POS_TELE_CLIC) . MDEF_TRAVAIL_PAC    ->/MDEF_TRAVAIL_PAC, MDEF_TRAVAIL_F_PAC;                /* Acquit du défaut */
+  - /*DI_POS_TELE .*/ MDEF_TRAVAIL_F_PAC  ->/MDEF_TRAVAIL_F_PAC;                              /* Suppression du défaut */
+   
+/**************** Visuels *****************/
+ switch
+  | - MEMSA_DEFAUT + MEMSA_DEFAUT_FIXE -> VISU_POS_TELE(libelle="Chaudière en défaut",  mode="off", cligno);
+  | - DI_POS_TELE                      -> VISU_POS_TELE(libelle="Chaudière activée",    mode="on");
+  | -                                  -> VISU_POS_TELE(libelle="Chaudière désactivée", mode="off");
+
+/**************** Messages et visuels ****************/
+ - MODE_AUTO                             -> MSG_MODE_AUTO, VISU_MODE_AUTO(libelle="Mode AUTO",   mode="auto");
+ -/MODE_AUTO                             -> MSG_MODE_MANU, VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu",cligno);
+
+ - DI_POS_TELE                           -> CH_CHAUDIERE, MSG_ON;
+ -/DI_POS_TELE                           -> MSG_OFF;
+ - MDEF_REPOS_PAC + MDEF_REPOS_F_PAC     -> MSG_DEF_REPOS;
+ - MDEF_TRAVAIL_PAC + MDEF_TRAVAIL_F_PAC -> MSG_DEF_TRAVAIL;
+
+/******************************************/
