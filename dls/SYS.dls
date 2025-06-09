@@ -1,0 +1,22 @@
+       /* 1.dls: Pilotage Chauffe EAU */
+ #define OSMS_TEST                <-> _E; /* Réception de la commande SMS 'test' */
+ #define DI_TEST_WAGO             <-> _AI;
+ #define MSG_TEST                 <-> _MSG(type=etat,libelle="Message de test !");
+ #define MSG_OUT_OF_MEMORY        <-> _MSG(type=alarme,libelle="Running out of memory !");
+ #define MSG_MQTT_CONNECTED       <-> _MSG(type=etat,libelle="MQTT API connecté");
+ #define MSG_MQTT_DISCONNECTED    <-> _MSG(type=defaut,libelle="Connexion au MQTT API perdue");
+ #define MSG_TEST2                <-> _MSG(type=etat,libelle="Message de test 2");
+ #define BI_TEST <-> _B(libelle="test");
+ 
+ #define STARTED <-> _MSG(type=etat,libelle="Started !");
+ 
+ - _TRUE -> STARTED;
+ - MAXRSS > 100000 -> MSG_OUT_OF_MEMORY;
+ - MQTT_CONNECTED -> MSG_MQTT_CONNECTED; 
+ -/MQTT_CONNECTED -> MSG_MQTT_DISCONNECTED; 
+
+ /*-/BI_TEST -- daa=100 -> BI_TEST, SALON_ECL:ODLS_WANT_ON;
+ - BI_TEST -- daa=100 ->/BI_TEST, SALON_ECL:ODLS_WANT_OFF;*/
+ 
+ /*- OSMS_TEST + _HEURE = 21:42 + TOP_1MIN -> MSG_TEST;*/
+   
