@@ -1,0 +1,160 @@
+/* Bits de consommation du module */
+  #define DI_POS_TELE         <-> _DI; /* Position du télérupteur */
+  #define O_TXT_START         <-> _DI(map_sms="POMPE_PAC ON"); /* Ordre Start en mode Manu */
+  #define O_TXT_STOP          <-> _DI(map_sms="POMPE_PAC OFF"); /* Ordre Stop en mode Manu */
+  
+/* Bits de production du module */
+  #define DO_ACT_TELE         <-> _DO; /* Sortie physique de pilotage du télérupteur, Ex: Legrand 412412 */
+  #define MDEF_REPOS_PAC      <-> _B(libelle="Memorisation du defaut repos non acquitte du TL");
+  #define MDEF_REPOS_F_PAC    <-> _B(libelle="Memorisation du defaut repos acquitte (Fixe) du TL");
+  #define MDEF_TRAVAIL_PAC    <-> _B(libelle="Memorisation du defaut travail non acquitte du TL");
+  #define MDEF_TRAVAIL_F_PAC  <-> _B(libelle="Memorisation du defaut travail acquitte (Fixe) du TL");
+  #define TIME_POMPE_PAC      <-> _CH(libelle="Temps de marche pompe PAC");
+  #define CI_POMPE_PAC        <-> _CI(libelle="Compteur de manoeuvre TL pompe PAC");
+
+/* Bits de notifications textuelles ou visuelles */
+  #define MSG_MODE_AUTO             <-> _MSG(type=etat,libelle="Mode automatique engagé", notif_sms=yes);
+  #define MSG_MODE_MANU             <-> _MSG(type=etat,libelle="Mode manuel engagé", notif_sms=yes);
+  #define MSG_PAC_ON                <-> _MSG(type=etat,libelle="Pompe PAC activée", notif_sms=yes);
+  #define MSG_PAC_OFF               <-> _MSG(type=etat,libelle="Pompe PAC désactivée", notif_sms=yes);
+  #define MSG_PAC_DEF_REPOS         <-> _MSG(type=defaut,libelle="Défaut repos TL Pompe PAC", notif_sms=yes);
+  #define MSG_PAC_DEF_TRAVAIL       <-> _MSG(type=defaut,libelle="Défaut travail TL Pompe PAC", notif_sms=yes);
+  #define MSG_VERROU_TEMP_BALLON_TH <-> _MSG(type=defaut,libelle="Température ballon trop haute ($TEMP:BALLON_HAUT): pompe PAC forcée.", notif_sms=yes);
+  
+  #define VISU_POMPE                <-> _I(forme="2d_pompe",libelle="Pompe PAC");
+  #define VISU_MODE_AUTO            <-> _I(forme="auto_manu",libelle="Mode de fonctionnement de la pompe PAC");
+
+  /* Bits purement internes au module */
+  #define MODE_AUTO                 <-> _B(groupe=1,libelle="Mode automatique");
+  #define MODE_MANU                 <-> _B(groupe=1,libelle="Mode manuel");
+  #define ME_WANT_TELE              <-> _B(libelle="Etat attendu du TL (0=ouvert, 1=ferme)");
+  #define ME_ACT_TELE               <-> _B(libelle="Demande de manoeuvre du TL (changement d'etat)");
+  #define VERROU_TEMP_BALLON_TH     <-> _B(libelle="Verrou de temperature ballon trop haute");
+  #define TR_DEF_TELE               <-> _T(daa=   20,dma=0,dMa=0,dad=0,libelle="Temporisation de détection de défaut sur Pompe PAC");
+  #define TITELE                    <-> _T(daa=    0,dma=0,dMa=3,dad=0,libelle="Temporisation d'impulsion de manoeuvre du TL PAC");
+
+
+                                    /*******************************************/
+ /***********************************                 EVENEMENTS                ***********************************/
+                                    /*******************************************/
+  /* Start */
+
+ - _START -> MODE_AUTO;
+
+
+                                    /*******************************************/
+ /***********************************        SYNTHESES DEFAUTS ET ALARMES       ***********************************/
+                                    /*******************************************/
+
+/* SYNTHESES DEFAUTS ---------------------------------------------------------*/
+ /* DEFAUTS */
+  - MDEF_REPOS_PAC + MDEF_TRAVAIL_PAC     -> MEMSA_DEFAUT;
+ 
+ /* DEFAUTS FIXES */
+  - MDEF_REPOS_F_PAC + MDEF_TRAVAIL_F_PAC -> MEMSA_DEFAUT_FIXE;
+ 
+                                  /********************************************/
+/**********************************         COMPTE RENDUS DES VIGNETTES        ***********************************/
+                                  /********************************************/
+/* SECURITE DES BIENS --------------------------------------------------------*/
+  - _TRUE -> MEMSSB_VEILLE;
+
+                                    /*******************************************/
+ /***********************************              FONCTIONS PILOTEES           ***********************************/
+                                    /*******************************************/
+ 
+ /* ORDRES DU MODULE ----------------------------------------------------------*/
+ 
+/***************************************/
+/* Gestion du mode automatique ou non  */
+/***************************************/
+  - VISU_MODE_AUTO_CLIC  ->
+    { switch
+       | - MODE_AUTO  -> MODE_MANU;
+       | -            -> MODE_AUTO;
+    }
+
+
+/****************************/
+/* Critères de verrouillage */
+/****************************/ 
+  - TEMP:BALLON_HAUT >= 70.0 -> VERROU_TEMP_BALLON_TH; /* Verrou si température haute */
+  - TEMP:BALLON_HAUT <  70.0 -- daa=6000 ->/VERROU_TEMP_BALLON_TH;
+  - VERROU_TEMP_BALLON_TH    -> MSG_VERROU_TEMP_BALLON_TH;
+
+/**************************************************/
+/* CALCUL ETAT ATTENDU TELERUPTEUR en mode manuel */
+/**************************************************/
+   - MODE_MANU . /ME_ACT_TELE ->
+     { switch
+        | - O_TXT_STOP                            ->/ME_WANT_TELE;
+        | - O_TXT_START                           -> ME_WANT_TELE;
+        | - VISU_POMPE_CLIC . /ME_WANT_TELE       -> ME_WANT_TELE;
+        | - VISU_POMPE_CLIC .  ME_WANT_TELE       ->/ME_WANT_TELE;
+        | -                                       ->_NOP;
+     }
+
+/**************************************************/
+/* CALCUL ETAT ATTENDU TELERUPTEUR en mode auto   */
+/**************************************************/
+   - MODE_AUTO . /ME_ACT_TELE ->
+     { switch
+        | - VERROU_TEMP_BALLON_TH                     -> ME_WANT_TELE; /* Si temperature ballon > 80° */
+        | - CHAUFFAGE_CMDE:ME_WANT_CHAUFFAGE          -> ME_WANT_TELE;/* Si demande de chauffage */
+        | -                                           -> /ME_WANT_TELE;
+     }
+
+/**************************************************/
+/* DETECTION DIFFERENCE ETAT ATTENDU ET ETAT REEL */
+/**************************************************/
+  - MEMSA_OK .  ME_WANT_TELE . /DI_POS_TELE -> ME_ACT_TELE;
+  - MEMSA_OK . /ME_WANT_TELE .  DI_POS_TELE -> ME_ACT_TELE;
+ 
+/**************************************************/
+/* PILOTAGE TELE SUR COMMANDE DE MANOEUVRE        */
+/**************************************************/
+  - ME_ACT_TELE          -> TITELE, TR_DEF_TELE, CI_POMPE_PAC;
+
+  switch
+   | - MEMSA_OK . TITELE -> DO_ACT_TELE;
+   | -                   ->/DO_ACT_TELE;
+ 
+ /* FIN DE MANOEUVRE */
+  - TR_DEF_TELE  -> /ME_ACT_TELE;
+  -/MEMSA_OK     -> /ME_ACT_TELE;
+
+/**************************************************/
+/* DETECTION DES DEFAUTS                          */
+/**************************************************/
+  - TR_DEF_TELE . /ME_WANT_TELE . DI_POS_TELE . /MDEF_REPOS_F_PAC
+                                          -> MDEF_REPOS_PAC;            /* Détection Discordance Repos du Télérupteur */
+  - (OSYN_ACQUIT + VISU_POMPE_CLIC) . MDEF_REPOS_PAC
+                                          ->/MDEF_REPOS_PAC, MDEF_REPOS_F_PAC;                    /* Acquit du défaut */
+  - MDEF_REPOS_F_PAC                      ->/MDEF_REPOS_F_PAC;                               /* Suppression du défaut */
+  - MDEF_REPOS_PAC + MDEF_REPOS_F_PAC     -> MSG_PAC_DEF_REPOS;
+ 
+  - TR_DEF_TELE .  ME_WANT_TELE . /DI_POS_TELE . /MDEF_TRAVAIL_F_PAC
+                                          -> MDEF_TRAVAIL_PAC;        /* Détection Discordance Travail du Télérupteur */
+  - (OSYN_ACQUIT + VISU_POMPE_CLIC) . MDEF_TRAVAIL_PAC
+                                          ->/MDEF_TRAVAIL_PAC, MDEF_TRAVAIL_F_PAC;                /* Acquit du défaut */
+  - MDEF_TRAVAIL_F_PAC                    ->/MDEF_TRAVAIL_F_PAC;                                           /* Suppression du défaut */
+  - MDEF_TRAVAIL_PAC + MDEF_TRAVAIL_F_PAC -> MSG_PAC_DEF_TRAVAIL;
+ 
+/**************************************************/
+/* Messages et visuels                            */
+/**************************************************/
+
+ - MODE_AUTO     -> MSG_MODE_AUTO,  VISU_MODE_AUTO(libelle="Mode AUTO",   mode="auto");
+ - MODE_MANU     -> MSG_MODE_MANU,  VISU_MODE_AUTO(libelle="Mode MANUEL", mode="manu",cligno);
+
+
+ switch
+  | - MDEF_TRAVAIL_PAC + MDEF_TRAVAIL_F_PAC -> VISU_POMPE(mode="off",  libelle="Défaut travail", color="grey", cligno);
+  | - MDEF_REPOS_PAC  + MDEF_REPOS_F_PAC    -> VISU_POMPE(mode="on" ,  libelle="Défaut repos",   color="green", cligno);
+  | - DI_POS_TELE                           -> VISU_POMPE(mode="on",  libelle="Pompe activée",   color="green");
+  | -                                       -> VISU_POMPE(mode="off", libelle="Pompe à l'arrêt", color="grey" );
+
+ - DI_POS_TELE                           -> TIME_POMPE_PAC, MSG_PAC_ON;
+ -/DI_POS_TELE                           -> MSG_PAC_OFF;
+
+/******************************************/
