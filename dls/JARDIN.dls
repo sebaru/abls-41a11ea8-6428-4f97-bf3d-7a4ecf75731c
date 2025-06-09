@@ -1,0 +1,3 @@
+ #define VISUEL_TEMP_JARDIN    <-> _VISUEL(libelle="Tempérture extérieure", forme="cadran", mode="progress-rovor", 
+                                           min=-5,max=40,seuil_ntb=5,seuil_nb=10,seuil_nh=30,seuil_nth=35, input=TEMP:JARDIN);
+ 
