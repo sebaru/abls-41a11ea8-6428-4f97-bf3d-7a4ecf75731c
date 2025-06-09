@@ -1,0 +1,184 @@
+/*****************************************************************************************************************/
+/*  ABLS(C)Habitat                             --------------                                                    */
+/*                                                                                                               */
+/* DLS de gestion d'une fenetre                                                                                  */
+/* Ce DLS s'appuie sur les I/O suivantes:                                                                        */
+/*  - Un capteur d'ouverture (ouvert/ferme) en sécurité active: 1 = fermée                                       */
+/*                                                                                                               */
+/* Paramètres:                                                                                                   */
+/*  - PARAM_VISUEL: Visuel de l'ouvrant: 2d_volets, fenetre, porte_fenetre, ...                                  */
+/*  - PARAM_OUVRANT: Libellé de l'ouvrant: Fenetre, Porte Fenêtre par exemple                                    */
+/*                                                                                                               */
+/* 24/03/2024  Création ce Jour                                                                  SeB    V1.0     */
+/* 17/08/2024  Renommage des bits d'alarme trop longue                                           SeB    V1.1     */
+/* 28/04/2025  Modification du defaut pour PARAM_OUVRANT, retrait couleur grise sur MTCE         seB    V1.2     */
+/*ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo*/
+/*                                                                                                               */
+/*                                  DECLARATIONS DES BITS ET MNEMONICS DU MODULE                                 */
+/*                                        °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°                                       */
+/*ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo*/
+
+ #param PARAM_VISUEL               (libelle="Forme du Visuel associé",                 defaut="fenetre");
+ #param PARAM_OUVRANT              (libelle="Nom de l'ouvrant",                        defaut="Fenêtre");
+ #param PARAM_NOTIF_SMS_OUVERTURE  (libelle="'yes' si notification SMS sur ouverture", defaut="no");
+ #param PARAM_NOTIF_SMS_FERMETURE  (libelle="'yes' si notification SMS sur fermeture", defaut="no");
+ 
+                                     /********************************************/
+/**********************************                   ENTREES                  ***********************************/
+                                  /********************************************/
+/* FENÊTRE */
+ #define P_CLOSE                       <->_DI;                                 /* Position Fin De Course Fenêtre*/
+ #define O_START_VEILLE                <->_DI;
+ #define O_STOP_VEILLE                 <->_DI;
+ #define ME_MTCE                       <->_B(libelle="Bit de maintenance");
+
+                                  /********************************************/
+/***********************************              TEMPORISATIONS               ***********************************/
+                                  /********************************************/
+/** MNEMONICS ET BITS ASSOCIES TEMPOS ----------------------------------------*/
+/* FENÊTRE ~~~~~~~~~~~~~~~~~~~~~~*/
+ #define TR_ALA_OPEN        <->_T(daa=432000,dma=0,dMa=0,dad=0,libelle="Alarme Porte Fenêtre Open >12h");
+
+                                  /********************************************/
+/***********************************          VISUELS NIVEAU 00 (00012)        ***********************************/
+                                  /********************************************/
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**                              VISUELS DES IMAGES                           */
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/* (Fenêtre) */
+  #define VISUEL_FENETRE           <->_I(forme="porte_fenetre", libelle="Porte Fenêtre close");
+
+                                  /********************************************/
+/**********************************                 BITS MODULE                ***********************************/
+                                  /********************************************/
+
+/**---------------------------------------------------------------------------*/
+/*                                   ALARMES                                  */
+/**---------------------------------------------------------------------------*/
+ #define MALA_OPEN_TROP_LONG     <->_B(libelle="Mémo Alarme Ouverture Porte Fenêtre trop long");
+ #define MALA_OPEN_TROP_LONGF    <->_B(libelle="Mémo Alarme Ouverture Porte Fenêtre trop long Fixe");
+ #define MALA_OPEN               <->_B(libelle="Mémo Alarme Ouverture Porte Fenêtre");
+ #define MALA_OPENF              <->_B(libelle="Mémo Alarme Ouverture Porte Fenêtre Fixe");
+
+/**---------------------------------------------------------------------------*/
+/*                                   VEILLE                                   */
+/**---------------------------------------------------------------------------*/
+ #define ME_VEILLE                 <->_B(libelle="Mémo Etat Veille sur Porte Fenêtre");
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**                               MESSAGES VEILLE                             */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+ #define EMSG_VEILLE             <->_MSG(type=veille,libelle="Veille sur Porte Fenêtre");
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**                               MESSAGES INFOS                              */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+ #define EMSG_OPEN               <->_MSG(type=etat,libelle="Porte Fenêtre Open",  notif_sms = no );
+ #define EMSG_CLOSE              <->_MSG(type=etat,libelle="Porte Fenêtre Close", notif_sms = no );
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**                              MESSAGES ALARMES                             */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+ #define EMSG_ALA_OPEN_TROP_LONG      <->_MSG(type=alarme,libelle="Alarme Porte Fenêtre Open Trop Longtemps");
+ #define EMSG_ALA_OPEN                <->_MSG(type=alarme,libelle="Alarme Porte Fenêtre en effraction", notif_sms);
+
+/*ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo*/
+/*                                                                                                               */
+/*                                  CODES DES EVENEMENTS,FONCTIONS ET VISUELS DU MODULE                          */
+/*                                        °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°                                  */
+/*ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo*/
+
+                                  /********************************************/
+/**********************************                  EVENEMENTS                ***********************************/
+                                  /********************************************/
+                                  
+ - _START -> /ME_VEILLE, /MALA_OPEN, /MALA_OPENF;
+ 
+/** ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*                              ETATS BAIE                                    */
+/** ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/* Fenêtre Ouverte/ Fermée */
+ - P_CLOSE                  -> EMSG_CLOSE;     /* MSG FdL FENÊTRE FERMEE */
+ -/P_CLOSE                  -> EMSG_OPEN;      /* MSG FdL FENÊTRE OUVERTE */
+
+/** ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*                              GESTION DE LA VEILLE                          */
+/** ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+ - O_START_VEILLE           -> ME_VEILLE;
+ - O_STOP_VEILLE            ->/ME_VEILLE;
+ - ME_VEILLE                -> MEMSSB_VEILLE, EMSG_VEILLE;   /* Report Veille */
+
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*                       ALARME OPEN BAIE TROP LONG                           */
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/* Fenêtre restée Ouverte trop longtemps => On Efface par sa Fermeture */
+ -/ME_MTCE . /P_CLOSE ./MALA_OPEN_TROP_LONGF
+                            -> TR_ALA_OPEN;              /* Ouverture Fenêtre trop longue ? */
+
+ - TR_ALA_OPEN              ->  MALA_OPEN_TROP_LONG;                        /* Fenêtre Ouverte trop longtemps */
+
+/* ACQUITEMENT ALARME OPEN ~~~~~~~*/
+ - (OSYN_ACQUIT + VISUEL_FENETRE_CLIC) . MALA_OPEN_TROP_LONG
+                              ->/MALA_OPEN_TROP_LONG , MALA_OPEN_TROP_LONGF;            /* Fixer ALARME OPEN */
+
+/* RAZ de l'ALARME ~~~~~~~~~~~~~~~*/
+ - P_CLOSE . MALA_OPEN_TROP_LONGF
+                              ->/MALA_OPEN_TROP_LONGF;                             /* Effacer ALARME OPEN Fixe */
+
+/* Notification de l'ALARME ~~~~~~*/
+ - MALA_OPEN_TROP_LONG + MALA_OPEN_TROP_LONGF
+                              -> EMSG_ALA_OPEN_TROP_LONG;   /* MSG FdL ALARME FENÊTRE OUVERTE TROP LONG */
+
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*                       ALARME OPEN BAIE                                     */
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/* Detection effraction */
+ -/ME_MTCE . ME_VEILLE . /P_CLOSE ./MALA_OPENF
+                              ->  MALA_OPEN;                      /* Fenêtre Ouverte trop longtemps */
+
+/* ACQUITEMENT ALARME OPEN ~~~~~~~*/
+ - (OSYN_ACQUIT + VISUEL_FENETRE_CLIC) . MALA_OPEN
+                              ->/MALA_OPEN, MALA_OPENF;               /* Fixer ALARME OPEN */
+
+/* RAZ de l'ALARME ~~~~~~~~~~~~~~~*/
+ - (P_CLOSE . MALA_OPENF) + /ME_VEILLE ->/MALA_OPENF;                                /* Effacer ALARME OPEN Fixe */
+
+/* Notification de l'ALARME ~~~~~~*/
+ - MALA_OPEN + MALA_OPENF     -> TOP_ALERTE_1, EMSG_ALA_OPEN;   /* MSG Effraction */
+
+
+                                  /********************************************/
+/**********************************          SYNTHESES DEFAUTS/ALARMES         ***********************************/
+                                  /**       ALERTES/DERANGEMENTS/DANGERS     **/
+                                  /********************************************/
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*                                    ACTIVITES                               */
+/**~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/* ALARMES ~~~~~~~~~~~~~~~~~~~~~~*/
+ - MALA_OPEN_TROP_LONG + MALA_OPEN   -> MEMSA_ALARME;                                          /* Report Alarmes */
+ - MALA_OPEN_TROP_LONGF + MALA_OPENF -> MEMSA_ALARME_FIXE;                                /* Report Alarmes Fixe */
+
+
+
+                                  /********************************************/
+/**********************************           ANIMATIONS DES VISUELS           ***********************************/
+                                  /********************************************/
+
+/* FENÊTRE ~~~~~~~~~~~~~~~~~~~~~~~*/
+ switch /* Fenêtre */
+/* Fenêtre en Alarme ouverture trop longtemps */
+ |- MEMSA_ALARME . P_CLOSE       -> VISUEL_FENETRE(mode="close",color="orange", libelle="Close, en ALARME", cligno);
+ |- MEMSA_ALARME ./P_CLOSE       -> VISUEL_FENETRE(mode="open",color="orange",  libelle="Open, en ALARME", cligno);
+
+/* Fenêtre en Défaut deverrouillé fermée */
+ |- MEMSA_ALARME_FIXE . P_CLOSE  -> VISUEL_FENETRE(mode="close",color="orange", libelle="Close, en ALARME");
+ |- MEMSA_ALARME_FIXE ./P_CLOSE  -> VISUEL_FENETRE(mode="open",color="orange",  libelle="Open, en ALARME");
+
+/* Fenêtre en Attente Fermée */
+ |- P_CLOSE                      -> VISUEL_FENETRE(mode="close",color="white", libelle="Close");      /* Attente Animé */
+
+/* Ouverte */
+ |-                              -> VISUEL_FENETRE(mode="open",color="black", libelle="Open");
+
+/*****************************************************************************************************************/
