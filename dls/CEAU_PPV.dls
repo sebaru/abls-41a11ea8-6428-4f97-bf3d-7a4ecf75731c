@@ -1,0 +1,29 @@
+ #define OUT_POWER          <-> _AO;
+ #define REAL_CURRENT       <-> _AI;
+ #define MSG_TOO_MUCH       <-> _MSG(type=defaut, libelle="Trop de production PPV01 $CEAU_PPV:PUISSANCE."); 
+
+ #define PUISSANCE          <-> _REGISTRE(libelle="Puissance du chauffe eau", unite="W" );
+ #define VISUEL_PUISSANCE   <-> _I(forme="cadran", mode="progress-rov", libelle="Puissance du chauffe eau", min=0.0, max=4000.0, seuil_ntb=100.0, seuil_nb=200.0, decimal=0, input=PUISSANCE );
+
+ #define VOLTAGE_CONSIGNE   <-> _REGISTRE(libelle="Voltage de commande 0-10V", unite="V");
+ #define VOLTAGE_MAX        <-> _REGISTRE(libelle="Voltage max de commande 0-10V", unite="V");
+ #define VOLTAGE_MIN        <-> _REGISTRE(libelle="Voltage min de commande 0-10V", unite="V");
+
+ - _START ->
+   { - 10.0   -> VOLTAGE_MAX;
+     - 0.0    -> VOLTAGE_MIN;
+     - 0.0    -> VOLTAGE_CONSIGNE;
+   }
+
+ - TOP_2HZ ->
+   { - SHELLY_EDF:EM10_ACT_POWER <  0.0 -> { - VOLTAGE_CONSIGNE + 0.2 -> VOLTAGE_CONSIGNE; }
+     - SHELLY_EDF:EM10_ACT_POWER >= 0.0 -> { - VOLTAGE_CONSIGNE - 0.1 -> VOLTAGE_CONSIGNE; }
+     - TEMP:BALLON_HAUT >= 75.0 -> { - VOLTAGE_CONSIGNE -> VOLTAGE_MIN; } /* Sécurité temperature ballon trop haute */
+     - VOLTAGE_CONSIGNE > VOLTAGE_MAX -> { - VOLTAGE_MAX -> VOLTAGE_CONSIGNE; }
+     - VOLTAGE_CONSIGNE = VOLTAGE_MAX -> MSG_TOO_MUCH;
+     - VOLTAGE_CONSIGNE < VOLTAGE_MIN -> { - VOLTAGE_MIN -> VOLTAGE_CONSIGNE; }
+   }
+
+ - VOLTAGE_CONSIGNE -> OUT_POWER; /* Pilotage de la sortie 0-10V avec la courbe de commande adaptée */
+ - REAL_CURRENT * UPS02:INPUT_VOLTAGE -> PUISSANCE;
+ 
