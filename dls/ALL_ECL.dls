@@ -1,0 +1,43 @@
+ #link CHRDC_ECL:VISU_POS_TL;
+ #link COUR_ECL:VISU_POS_TL;
+ #link JARDIN_ECL:VISU_POS_TL;
+ #link CUISINE_ECL:VISU_POS_TL;
+ #link GRENIER_ECL:VISU_POS_TL;
+ #link GRENIER_PCC:VISU_POS_TL;
+ #link SALON_ECL:VISU_POS_TL;
+ #link SALON_PCC:VISU_POS_TL;
+ 
+ #define O_DLS_ALL_OFF <-> _DI; /* Ordre de toute eteindre depuis DLS */
+ #define O_DLS_ALL_ON  <-> _DI; /* Ordre de toute allumer  depuis DLS */
+ 
+ #define VISU_BOUTON_ALL_ON  <-> _I ( forme="ampoule", mode="tout_allumer", libelle="Allumer toutes les lampes" );
+ #define VISU_BOUTON_ALL_OFF <-> _I ( forme="ampoule", mode="tout_eteindre", libelle="Eteindre toutes les lampes" );
+          
+ - _TRUE -> VISU_BOUTON_ALL_ON, VISU_BOUTON_ALL_OFF;
+ 
+ - VISU_BOUTON_ALL_OFF_CLIC + O_DLS_ALL_OFF -> 
+                               CHRDC_ECL:ODLS_WANT_OFF,
+                               COUR_ECL:ODLS_WANT_OFF,
+                               JARDIN_ECL:ODLS_WANT_OFF,
+                               CUISINE_ECL:ODLS_WANT_OFF,
+                               GRENIER_ECL:ODLS_WANT_OFF,
+                               GRENIER_PCC:ODLS_WANT_OFF,
+                               SALON_ECL:ODLS_WANT_OFF,
+                               SALON_PCC:ODLS_WANT_OFF;
+ 
+  - VISU_BOUTON_ALL_ON_CLIC + O_DLS_ALL_ON ->
+                               CHRDC_ECL:ODLS_WANT_ON,
+                               COUR_ECL:ODLS_WANT_ON,
+                               JARDIN_ECL:ODLS_WANT_ON,
+                               CUISINE_ECL:ODLS_WANT_ON,
+                               GRENIER_ECL:ODLS_WANT_ON,
+                               GRENIER_PCC:ODLS_WANT_ON,
+                               SALON_ECL:ODLS_WANT_ON,
+                               SALON_PCC:ODLS_WANT_ON;
+                               
+  - MAISON:MODE_AVION ->
+    {
+      - METEO_API:SUNSET   -> SALON_ECL:ODLS_WANT_ON;
+      - _HEURE = 22:00 -> SALON_ECL:ODLS_WANT_OFF;
+    }
+    
