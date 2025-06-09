@@ -1,0 +1,43 @@
+ #define ENABLE      <-> _DI; /* Retour Télérupteur branchement Panneaux Photovoltaïques */
+ #define MSG_ENABLE  <-> _MSG(type=etat,libelle="Panneaux Photovoltaïques branchés au réseau EDF.");
+ #define MSG_DISABLE <-> _MSG(type=etat,libelle="Panneaux Photovoltaïques NON branchés au réseau EDF.");
+
+ #define TICK_WH     <-> _DI; /* 1 Wh par Impulsion */
+ #define PRODUCTION  <-> _R(libelle="Production d'energie", unite="VA");
+ #define VISUEL_PRODUCTION <-> _I(forme="cadran", mode="progress-rov", min=0,max=300,seuil_ntb=20,seuil_nb=100, input=PRODUCTION);
+ 
+ #define INTENSITE                <-> _AI; /* Intensité instantanée des panneaux PPV01 */
+ #define VISUEL_INTENSITE         <-> _I(forme="cadran", mode="progress-rov",min=0,max=6,seuil_ntb=0.2,seuil_nb=0.5, input=INTENSITE); /* Intensité instantanée des panneaux PPV01 */
+ #define INTENSITE_CALCUL         <-> _REGISTRE(libelle="Intensité calculée sans la conso de fonctionnement");
+ #define MSG_INTENSITE_NOTINRANGE <-> _MSG(type=defaut,libelle="Intensité instantanée Not In Range !");
+
+                                    /*******************************************/
+ /***********************************        SYNTHESES DEFAUTS ET ALARMES       ***********************************/
+                                    /*******************************************/
+/* SYNTHESES DEFAUTS ---------------------------------------------------------*/
+ /* DEFAUTS */
+  -_FALSE                                 -> MEMSA_DEFAUT;
+ 
+ /* DEFAUTS FIXES */
+  -_FALSE                                 -> MEMSA_DEFAUT_FIXE;
+
+                                  /********************************************/
+/**********************************         COMPTE RENDUS DES VIGNETTES        ***********************************/
+                                  /********************************************/
+/* ACTIVITES -----------------------------------------------------------------*/
+/* SECURITE DES BIENS -----------------------------------------------------*/
+ - _TRUE -> MEMSSB_VEILLE;
+
+                                     /*******************************************/
+ /***********************************              FONCTIONS PILOTEES           ***********************************/
+                                    /*******************************************/
+ 
+ - /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
+ - ENABLE  -> MSG_ENABLE;
+ -/ENABLE  -> MSG_DISABLE;
+
+ - SYS:TOP_5HZ ->
+  { - INTENSITE >= 0.15 -> { - INTENSITE - 0.15 -> INTENSITE_CALCUL; }
+    - INTENSITE <  0.15 -> { - 0.0 -> INTENSITE_CALCUL; }
+    - UPS01:INPUT_VOLTAGE * INTENSITE_CALCUL -> PRODUCTION;
+  }
