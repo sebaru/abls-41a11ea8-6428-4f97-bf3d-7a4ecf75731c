@@ -1,0 +1,52 @@
+/******************************************************************************************************************************/
+/*  Sébastien Lefevre - sebastien.lefevre@abls-habitat.fr                                                    ABLS-habitat.fr  */
+/*                                                                                                     Élaboré le 03/07/2021  */
+/*                                                                                                                            */
+/*  Module Chapeau de la Chambre de Lucas                                                                                     */
+/*                                                                                                                            */
+/******************************************************************************************************************************/
+
+/*----------------------------------------------------------------------------------------------------------------------------*/
+/*                                                                                                                            */
+/*                                       DECLARATIONS DES BITS ET MNEMONICS DU MODULE                                         */
+/*                                                                                                                            */
+/*----------------------------------------------------------------------------------------------------------------------------*/
+
+                                      /********************************************/
+/**************************************         DEPENDANCES EXTERNES               ********************************************/
+                                      /********************************************/
+
+   #define VISUEL_TEMP_CH2 <-> _I(forme="cadran", mode="progress-rovor",min=5,max=40,seuil_ntb=16,seuil_nb=19,seuil_nh=26,seuil_nth=30, input=TEMP:CH2);
+ 
+ 
+/*----------------------------------------------------------------------------------------------------------------------------*/
+/*                                                                                                                            */
+/*                                       SYNTHESE DES DEFAUTS/ALARMES/ALERTES/DERANGEMENTS/DANGERS                            */
+/*                                                                                                                            */
+/*----------------------------------------------------------------------------------------------------------------------------*/
+
+/* DEFAUTS ~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSA_DEFAUT;                                               /* Report Défauts */
+ - _FALSE                                    -> MEMSA_DEFAUT_FIXE;                                     /* Report Défauts Fixe */
+
+/* ALARMES ~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSA_ALARME;                                             /* Report d'Alarmes */
+ - _FALSE                                    -> MEMSA_ALARME_FIXE;                                   /* Report d'Alarmes Fixe */
+
+/* VEILLE ~~~~~~~~~~~~~~~~~~~~~~~*/
+ - _TRUE                                     -> MEMSSB_VEILLE;                                               /* Report Veille */
+
+/* ALERTE ~~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSSB_ALERTE;                                            /* Report d'Alertes */
+ - _FALSE                                    -> MEMSSB_ALERTE_FIXE;                                  /* Report d'Alertes Fixe */
+
+/* DERANGEMENT ~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSSP_DERANGEMENT;                                    /* Report Dérangements */
+ - _FALSE                                    -> MEMSSP_DERANGEMENT_FIXE;                          /* Report Dérangements Fixe */
+
+/* DANGER ~~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSSP_DANGER;                                              /* Report Dangers */
+ - _FALSE                                    -> MEMSSP_DANGER_FIXE;                                    /* Report Dangers Fixe */
+
+ 
+ 
