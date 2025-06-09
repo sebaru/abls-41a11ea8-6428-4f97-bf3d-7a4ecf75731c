@@ -1,0 +1,6 @@
+
+
+ #define BUS_STOP <-> _BUS(tech_id="PROJO", tag="STOP");
+ 
+ /*- TOP_1SEC -> BUS_STOP;
+ */
