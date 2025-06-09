@@ -1,0 +1,31 @@
+/* Default ! */
+
+
+/*----------------------------------------------------------------------------------------------------------------------------*/
+/*                                                                                                                            */
+/*                                       SYNTHESE DES DEFAUTS/ALARMES/ALERTES/DERANGEMENTS/DANGERS                            */
+/*                                                                                                                            */
+/*----------------------------------------------------------------------------------------------------------------------------*/
+
+/* DEFAUTS ~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSA_DEFAUT;                                               /* Report Défauts */
+ - _FALSE                                    -> MEMSA_DEFAUT_FIXE;                                     /* Report Défauts Fixe */
+
+/* ALARMES ~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSA_ALARME;                                             /* Report d'Alarmes */
+ - _FALSE                                    -> MEMSA_ALARME_FIXE;                                   /* Report d'Alarmes Fixe */
+
+/* VEILLE ~~~~~~~~~~~~~~~~~~~~~~~*/
+ - _TRUE                                     -> MEMSSB_VEILLE;                                               /* Report Veille */
+
+/* ALERTE ~~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSSB_ALERTE;                                            /* Report d'Alertes */
+ - _FALSE                                    -> MEMSSB_ALERTE_FIXE;                                  /* Report d'Alertes Fixe */
+
+/* DERANGEMENT ~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSSP_DERANGEMENT;                                    /* Report Dérangements */
+ - _FALSE                                    -> MEMSSP_DERANGEMENT_FIXE;                          /* Report Dérangements Fixe */
+
+/* DANGER ~~~~~~~~~~~~~~~~~~~~~~~*/
+ - _FALSE                                    -> MEMSSP_DANGER;                                              /* Report Dangers */
+ - _FALSE                                    -> MEMSSP_DANGER_FIXE;                                    /* Report Dangers Fixe */
