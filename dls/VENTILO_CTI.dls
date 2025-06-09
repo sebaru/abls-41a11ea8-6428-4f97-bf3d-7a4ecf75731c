@@ -1,0 +1,25 @@
+ #define DO_VENTILATEUR   <-> _DO; /* Sortie Ventilateur 12v */
+ #define WANT_VENTILATEUR <-> _B(libelle="TRUE si demande de faire tourner le ventilateur CTI");
+ #define VISUEL_VENTILO   <-> _I(forme="ventilateur", libelle="Ventilateur du CTI");
+ #define MSG_VENTILO      <-> _MSG(type=etat, libelle="Ventilateur CTI activé");
+ #define B_VENTILO_FORCE  <-> _B(libelle="forçage ventilateur");
+
+ switch
+  | - VISUEL_VENTILO_CLIC . /B_VENTILO_FORCE -> B_VENTILO_FORCE;
+  | - VISUEL_VENTILO_CLIC .  B_VENTILO_FORCE ->/B_VENTILO_FORCE;
+  | - -> _NOP;
+ 
+ switch
+  | - B_VENTILO_FORCE    -> WANT_VENTILATEUR;
+  | - TEMP:FUMEE >= 29.0 -> WANT_VENTILATEUR;
+  | - TEMP:FUMEE <= 28.0 ->/WANT_VENTILATEUR;
+  | -                    ->_NOP;
+  
+ switch
+  | - WANT_VENTILATEUR -> DO_VENTILATEUR, MSG_VENTILO;
+  | -                  ->/DO_VENTILATEUR;
+  
+  switch
+   |- B_VENTILO_FORCE  -> VISUEL_VENTILO(libelle="Forcé", color="orange");
+   |- WANT_VENTILATEUR -> VISUEL_VENTILO(libelle="Allumé", color="green");
+   | -                 -> VISUEL_VENTILO(libelle="Éteint", color="gray");
