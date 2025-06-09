@@ -1,0 +1,39 @@
+ #define VISU_BOUTON     <-> _I(forme="bouton_io", color="gray", libelle="Statut de la télé");
+ #define VISU_CROCODILE  <-> _I(forme="youtube_crocodile", libelle="Voir les Crocodiles");
+ #define VISU_BEBE_LOUIS <-> _I(forme="youtube_bebe_louis", libelle="Voir bébé Louis");
+ #define VISU_PEPPA_PIG  <-> _I(forme="youtube_peppa_pig", libelle="Voir Peppa Pig");
+ #define VISU_STOP_FIREFOX <-> _I(forme="panneau_stop", libelle="Arreter Firefox", color="lightblue");
+ #define VISU_WTD_OZOIR    <-> _I(forme="logo", libelle="Wtd Ozoir");
+ 
+/* #define ALLUMER_CROCODILE  <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://www.youtube.com/watch?v=1T9b0cax6s4");
+ #define ALLUMER_BEBE_LOUIS <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://www.youtube.com/watch?v=BU55PEV6CcQ");
+ #define ALLUMER_PEPPA_PIG  <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://www.youtube.com/watch?v=0xid8ji3bwU");
+ #define ALLUMER_WTD_OZOIR  <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://wtd-ozoir.abls-habitat.fr");
+ #define ETEINDRE_FIREFOX   <-> _BUS(tech_id="THOT", tag="execute", target="pkill -KILL -f firefox");
+ #define ETEINDRE_TELE      <-> _BUS(tech_id="THOT", tag="execute", target="sudo poweroff");*/
+ 
+ #define MSG_EXTINCTION     <-> _MSG(type=etat, libelle="La télé va s'éteindre, merci de ne pas chouiner, bisous");
+ #define MSG_PYJAMA         <-> _MSG(type=etat, libelle="Lucas, tu as mis ton pyjama et les dents sont lavées ?");
+
+ - _TRUE               -> VISU_CROCODILE;
+ - VISU_CROCODILE_CLIC -> MSG_PYJAMA;
+
+ - _TRUE                -> VISU_BEBE_LOUIS;
+ /*- VISU_BEBE_LOUIS_CLIC -> ALLUMER_BEBE_LOUIS;*/
+
+ - _TRUE                -> VISU_PEPPA_PIG;
+ /*- VISU_PEPPA_PIG_CLIC -> ALLUMER_PEPPA_PIG;*/
+
+ - _TRUE                -> VISU_STOP_FIREFOX;
+ /*- VISU_STOP_FIREFOX_CLIC -> ETEINDRE_FIREFOX;*/
+
+ switch
+  | - AUDIO_SARAPIS:IO_COMM -> VISU_BOUTON ( color="green", libelle="La télé est allumée" );
+  | -                       -> VISU_BOUTON ( color="red",   libelle="La télé est éteinte" );
+
+ - VISU_BOUTON_CLIC -> MSG_EXTINCTION; /*ETEINDRE_TELE;*/
+
+ - _TRUE                -> VISU_WTD_OZOIR;
+ /*- VISU_WTD_OZOIR_CLIC  -> ALLUMER_WTD_OZOIR;*/
+
+ - _TRUE -> MEMSSB_VEILLE;
