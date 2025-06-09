@@ -1,0 +1,40 @@
+  #define BALLON_HAUT   <-> _AI; /* Température ballon haut */
+  #define BALLON_BAS    <-> _AI; /* Température ballon bas */
+  #define SALON         <-> _AI; /* Température du Salon */
+  #define JARDIN        <-> _AI; /* Température exterieure jardin */
+  #define CUISINE       <-> _AI; /* Température de la cuisine */
+  #define CHAMBRE_RDC   <-> _AI; /* Température de la chambre RdC */
+  #define CTI_RDC       <-> _AI; /* Température du CTI WAGO RDC */
+  #define GARAGE        <-> _AI; /* Température du Garage */
+  #define SDB_RDC       <-> _AI; /* Température Salle de Bain Rez de Chaussée */
+  #define SDB_1ER       <-> _AI; /* Température Salle de Bain 1er étage */
+  #define CH1           <-> _AI; /* Température Petite Chambre */
+  #define CH2           <-> _AI; /* Température Grande Chambre */
+  #define DEGAGEMENT    <-> _AI; /* Température Degagement 1er étage */
+  #define MUR_SUD       <-> _AI; /* Température Mur sud (derrière doublage) */
+  #define FUMEE         <-> _AI; /* Température des fumées du poële */
+  #define BUREAU        <-> _AI; /* Température du bureau */
+
+  #define OTXT_TEMP     <-> _DI; /* Demande SMS ou IMSG de température */
+
+  #define MSG_TEMP_JARDIN_MATIN <-> _MSG (libelle="Ce matin, il fait $TEMP:JARDIN.");
+  #define MSG_TEMP_JARDIN_SOIR  <-> _MSG (libelle="Ce soir, il fait $TEMP:JARDIN.");
+  #define MSG_TEMP              <-> _MSG (libelle="Il fait $TEMP:JARDIN.");
+  #define MSG_TEMP_BALLON_HAUT  <-> _MSG (libelle="Temp ballon haut $TEMP:BALLON_HAUT.");
+  #define MSG_TEMP_BALLON_BAS   <-> _MSG (libelle="Temp ballon haut $TEMP:BALLON_BAS.");
+  
+                                  /********************************************/
+/**********************************         COMPTE RENDUS DES VIGNETTES        ***********************************/
+                                  /********************************************/
+/* SECURITE DES BIENS --------------------------------------------------------*/
+  - _TRUE -> MEMSSB_VEILLE;
+
+                                  /*******************************************/
+/***********************************              FONCTIONS PILOTEES           ***********************************/
+                                  /*******************************************/
+ 
+  - OTXT_TEMP + _HEURE = 07:00 -> MSG_TEMP_JARDIN_MATIN;
+  - OTXT_TEMP + _HEURE = 20:00 -> MSG_TEMP_JARDIN_SOIR;
+  - OTXT_TEMP                  -> MSG_TEMP;
+  - OTXT_TEMP                  -> MSG_TEMP_BALLON_HAUT;
+  - OTXT_TEMP                  -> MSG_TEMP_BALLON_BAS;
