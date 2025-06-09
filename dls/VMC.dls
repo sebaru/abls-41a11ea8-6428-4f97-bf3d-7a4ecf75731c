@@ -1,0 +1,113 @@
+/******************************************************************************************************************************/
+/* Gestion d'un télérupteur full automatique orienté pilotage lumière                                                         */
+/*                                                                                                                            */
+/* Matériel                                                                                                                   */
+/*  - Télérupteur Legrand 412429 par exemple, mais peut fonctionner avec tous type de télérupteur équivalent                  */
+/*  - Impulsion de commande de 0.3 seconde                                                                                    */
+/*                                                                                                                            */
+/* Fonctionnalités                                                                                                            */
+/*  - Allumage/Extinction depuis une commande TXT (SMS ou IMSG)                                                               */
+/*  - Allumage/Extinction depuis une commande VOCALE                                                                          */
+/*  - Allumage/Extinction depuis une commande SYNoptique                                                                      */
+/*  - Allumage/Extinction depuis une commande DLS                                                                             */
+/*  - Gestion des défauts travail et repos                                                                                    */
+/*  - Pas d'alarme/alerte/danger/derangement                                                                                  */
+/*  - Pas de maintenance                                                                                                      */
+/*                                                                                                                            */
+/*                                               Sébastien Lefevre - sebastien.lefevre@abls-habitat.fr    24.10.2019 09:27:58 */
+/******************************************************************************************************************************/
+
+/* Bits de consommation du module */
+  #define OTXT_START         <-> _E; /* Demande SMS d'activation VMC */
+  #define OTXT_STOP          <-> _E; /* Ordre SMS d'arret VMC */
+  #define OTXT_AUTO          <-> _E; /* Mode automatique VMC engagé via SMS */
+  #define ME_WANT_VMC        <-> _B(libelle="Etat attendu du CT (0=ouvert, 1=ferme)");
+
+  /* Bits de production du module */
+  #define DO_ACT_VMC         <-> _A; /* Sortie physique de pilotage de la VMC */
+  #define TIME_VMC           <-> _CH(libelle="Temps de marche VMC");
+  #define CI_VMC             <-> _CI(libelle="Compteur de manoeuvre VMC");
+
+  #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
+  #define MSG_MODE_MANU       <-> _MSG(type=etat,libelle="Mode manuel engagé");
+  #define MSG_ON              <-> _MSG(type=etat,libelle="VMC activée");
+  #define MSG_OFF             <-> _MSG(type=etat,libelle="VMC désactivée");
+  #define MSG_VMC_UPS_FAIL    <-> _MSG(type=etat,libelle="VMC désactivée sur UPS hors ligne");
+  
+  #define VISU_POS_VMC        <-> _I(forme="vmc",libelle="VMC");
+  #define VISU_MODE_AUTO      <-> _I(forme="auto_manu",libelle="Mode de fonctionnement de la VMC");
+  #define VISU_BOUTON_IO      <-> _I(forme="bouton_io",libelle="Activer ou Désactiver la VMC");
+
+  /* Bits purement internes au module */
+  #define MODE_AUTO          <-> _B(libelle="Mode automatique ou manuel");
+
+                                    /*******************************************/
+ /***********************************                 EVENEMENTS                ***********************************/
+                                    /*******************************************/
+  /* Start */
+
+ - _START -> MODE_AUTO;
+
+                                    /*******************************************/
+ /***********************************        SYNTHESES DEFAUTS ET ALARMES       ***********************************/
+                                    /*******************************************/
+
+/* SYNTHESES DEFAUTS ---------------------------------------------------------*/
+ /* DEFAUTS */
+ 
+ /* DEFAUTS FIXES */
+ 
+                                  /********************************************/
+/**********************************         COMPTE RENDUS DES VIGNETTES        ***********************************/
+                                  /********************************************/
+/* SECURITE DES BIENS --------------------------------------------------------*/
+  - _TRUE -> MEMSSB_VEILLE;
+
+                                    /*******************************************/
+ /***********************************              FONCTIONS PILOTEES           ***********************************/
+                                    /*******************************************/
+ 
+ /* ORDRES DU MODULE ----------------------------------------------------------*/
+ 
+ /* Gestion du mode automatique ou non  */
+  - VISU_MODE_AUTO_CLIC  ->
+    { switch
+       | - MODE_AUTO               -> /MODE_AUTO;
+       | -                         ->  MODE_AUTO;
+    }
+
+  - OTXT_STOP + OTXT_START         -> /MODE_AUTO;
+  - OTXT_AUTO                      ->  MODE_AUTO;
+
+ /* CALCUL ETAT ATTENDU TELERUPTEUR en mode manuel */
+   - /MODE_AUTO ->
+     { switch
+        | - OTXT_STOP                               ->/ME_WANT_VMC;
+        | - OTXT_START                              -> ME_WANT_VMC;
+        | - VISU_BOUTON_IO_CLIC . /ME_WANT_VMC      -> ME_WANT_VMC;
+        | - VISU_BOUTON_IO_CLIC .  ME_WANT_VMC      ->/ME_WANT_VMC;
+        | - -> _NOP;
+     }
+
+ /* CALCUL ETAT ATTENDU en mode auto */
+   - MODE_AUTO ->
+     { switch
+        | - /UPS01:ME_SOURCE_VOLTAGE_OK          ->/ME_WANT_VMC, MSG_VMC_UPS_FAIL;
+        | - _HEURE >= 07:00 . _HEURE <= 09:00    -> ME_WANT_VMC;
+        | - _HEURE >= 12:30 . _HEURE <= 14:00    -> ME_WANT_VMC;
+        | - _HEURE >= 19:00 . _HEURE <= 20:00    -> ME_WANT_VMC;
+        | - -> /ME_WANT_VMC;
+     }
+
+/* DETECTION DIFFERENCE ETAT ATTENDU ET ETAT REEL */
+ switch
+  | - MEMSA_OK . ME_WANT_VMC -> DO_ACT_VMC, CI_VMC, TIME_VMC, VISU_POS_VMC(libelle="VMC activée",      mode="on", color=vert),
+                                                              VISU_BOUTON_IO(libelle="VMC activée",    color=vert), MSG_ON;
+  | -                        ->/DO_ACT_VMC,                   VISU_POS_VMC(libelle="VMC désactivée",   mode="off",color=gris),
+                                                              VISU_BOUTON_IO(libelle="VMC désactivée", color=rouge), MSG_OFF;
+
+ - MODE_AUTO                             -> MSG_MODE_AUTO, VISU_MODE_AUTO(libelle="Mode AUTO",   mode="auto");
+ -/MODE_AUTO                             -> MSG_MODE_MANU, VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu",cligno);
+
+/*-------------------------------------------------------------------------------------------------------------------------------*/
+
