@@ -1,0 +1,3 @@
+ #define VISUEL_TEMP_RDC <-> _VISUEL(libelle="Tempérture chambre Papa", forme="cadran", mode="progress-rovor", 
+                                     min=5,max=40,seuil_ntb=16,seuil_nb=19,seuil_nh=26,seuil_nth=30, input=TEMP:CHAMBRE_RDC);
+ 
