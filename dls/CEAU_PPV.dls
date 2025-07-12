@@ -25,5 +25,5 @@
    }
 
  - VOLTAGE_CONSIGNE -> OUT_POWER; /* Pilotage de la sortie 0-10V avec la courbe de commande adaptée */
- - REAL_CURRENT * UPS02:INPUT_VOLTAGE -> PUISSANCE;
+ - REAL_CURRENT * SHELLY_EDF:EM10_VOLTAGE -> PUISSANCE;
  
