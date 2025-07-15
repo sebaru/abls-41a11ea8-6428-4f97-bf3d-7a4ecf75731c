@@ -3,6 +3,6 @@
   #define VISUEL_CT <-> _I(forme="switch",mode="off");
   
   switch
-   | - DI_CT -> VISUEL_CT(mode="off", libelle="A l'arret");
-   | -       -> VISUEL_CT(mode="on", libelle="En marche");
+   | - DI_CT -> VISUEL_CT(mode="on",  libelle="En marche");
+   | -       -> VISUEL_CT(mode="off", libelle="A l'arret");
   
