@@ -1,0 +1,8 @@
+
+  #define DI_TELE     <-> _DI(libelle="Position Télérupteur atelier");
+  #define VISUEL_TELE <-> _I(forme="switch",mode="off");
+  
+  switch
+   | - DI_TELE -> VISUEL_TELE(mode="off", libelle="A l'arret");
+   | -         -> VISUEL_TELE(mode="on", libelle="En marche");
+  
