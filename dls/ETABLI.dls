@@ -4,7 +4,6 @@
   #define MSG_CT_ON  <-> _MSG(type=etat, libelle="L'établi est sous tension");
   #define MSG_CT_OFF <-> _MSG(type=etat, libelle="L'établi est hors tension");
 
-  switch
-   | - DI_CT -> VISUEL_CT(mode="on",  libelle="En marche"), MSG_CT_ON;
-   | -       -> VISUEL_CT(mode="off", libelle="A l'arret"), MSG_CT_OFF;
+  - DI_CT -> VISUEL_CT(mode="on",  libelle="En marche"), MSG_CT_ON;
+  -/DI_CT -> VISUEL_CT(mode="off", libelle="A l'arret"), MSG_CT_OFF;
   
