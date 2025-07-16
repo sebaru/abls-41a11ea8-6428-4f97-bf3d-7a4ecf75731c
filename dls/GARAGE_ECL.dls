@@ -86,7 +86,7 @@
   - TR_DEF -> /MO_ACT_TELE;
 
 /* Auto OFF */
-  - 72000 > 0 . POS_TL -- daa=72000 -> MSG_OFF_BY_AUTO_OFF, ODLS_WANT_OFF;
+  - 144000 > 0 . POS_TL -- daa=144000 -> MSG_OFF_BY_AUTO_OFF, ODLS_WANT_OFF;
 
                                          /*******************************************/
 /*****************************************            DEFAUTS ET ALARMES            ******************************************/
