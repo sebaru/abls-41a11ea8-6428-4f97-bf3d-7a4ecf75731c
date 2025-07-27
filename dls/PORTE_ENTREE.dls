@@ -74,7 +74,7 @@
 /**                               MESSAGES INFOS                              */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  #define EMSG_OPEN               <->_MSG(type=etat,libelle="Porte d'entrée Open",  notif_sms = yes );
- #define EMSG_CLOSE              <->_MSG(type=etat,libelle="Porte d'entrée Close", notif_sms = yes );
+ #define EMSG_CLOSE              <->_MSG(type=etat,libelle="Porte d'entrée Close", notif_sms = no );
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /**                              MESSAGES ALARMES                             */
