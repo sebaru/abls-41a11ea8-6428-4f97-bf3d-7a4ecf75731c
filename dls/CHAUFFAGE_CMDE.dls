@@ -141,8 +141,8 @@
  - MODE_AUTO ->
      { switch
         | - VERROU_TEMP_MUR_SUD                       -> ME_WANT_CHAUFFAGE;  /* Chauffage obligatoire si temp ext < 2° */
-        | - VERROU_TEMP_BALLON_TB                     ->/ME_WANT_CHAUFFAGE;  /* Si verrou temp trop basse ballon */
         | - DMD_EXT_CHAUFFE                           -> ME_WANT_CHAUFFAGE;  /* Si demande de chauffe externe */
+        | - VERROU_TEMP_BALLON_TB                     ->/ME_WANT_CHAUFFAGE;  /* Si verrou temp trop basse ballon */
         | - MAISON:MODE_VALISE                        ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
         | - MAISON:MODE_AVION                         ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
         | - _HEURE >= 05:30 . _HEURE <= 07:00         -> ME_WANT_CHAUFFAGE;  /* Chauffage obligatoire de 5 à 8 pour la salle de bain ! */
