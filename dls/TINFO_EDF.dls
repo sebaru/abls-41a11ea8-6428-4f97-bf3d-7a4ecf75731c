@@ -1,0 +1,41 @@
+/* Module DLS issu de token TeleInfoEDF. */
+                                                                        /* Issu du WAGO RDC Sonde Amperemtrique (4/20mA) */
+ #define INTENSITE           <-> _AI(libelle="Intensité EDF", unite="A"); /* depuis LEM WAGO */
+
+ #define BASE                <-> _AI(libelle="Index option BASE", unite="Wh");
+ #define VISUEL_INTENSITE    <-> _I(forme="cadran",mode="progress-rovor", libelle="Intensité du compteur EDF", min=0,seuil_ntb=0.5,seuil_nb=1.0,seuil_nh=3.0,seuil_nth=5.0,max=6,decimal=2, input=INTENSITE);
+
+ #define CI_SURCHARGE        <-> _CI(libelle="Compteur de surcharge EDF", unite="fois" );
+ #define VISUEL_CI_SURCHARGE <-> _I(forme="cadran",mode="texte", libelle="Compteur de surcharge EDF", input=CI_SURCHARGE);
+
+ #define MSG_SURCHARGE <-> _MSG(type=alarme,libelle="Alarme surcharge EDF à $TINFO_EDF:CHARGE");
+ #define CONSO_TOTALE  <-> _R (libelle="Consommation facturée de la maison",unite="W");
+ #define BASEold       <-> _R(libelle="Photo de l'index de base une minute avant", unite="Wh");
+
+ #define BASE_KWH        <-> _R(libelle="Index du Compteur EDF", unite="KWh");
+ #define VISUEL_BASE_KWH <-> _I(forme="cadran", mode="texte", libelle="Index du Compteur EDF", decimal=0, input=BASE_KWH);
+
+ #define MSG_CHARGE_NOT_IN_RANGE <-> _MSG(type=defaut, libelle="EDF INTENSITE not in range !");
+ 
+                                  /********************************************/
+/**********************************         COMPTE RENDUS DES VIGNETTES        ***********************************/
+                                  /********************************************/
+/* ACTIVITES -----------------------------------------------------------------*/
+
+/* SECURITE DES BIENS --------------------------------------------------------*/
+ - _TRUE -> MEMSSB_VEILLE;
+
+                                  /********************************************/
+/**********************************              FONCTIONS PILOTEES            ***********************************/
+                                  /********************************************/
+
+ - INTENSITE >= 45.0 -> MSG_SURCHARGE, CI_SURCHARGE;
+
+ - SYS:TOP_1MIN ->
+  { - ( (BASE - BASEold)*60 ) -> CONSO_TOTALE;
+    - ( BASE ) -> BASEold;
+    - ( BASE/1000.0 ) -> BASE_KWH;
+  }
+ 
+ - /INTENSITE(in_range) -> MSG_CHARGE_NOT_IN_RANGE;
+ 
