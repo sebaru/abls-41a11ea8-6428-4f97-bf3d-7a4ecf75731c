@@ -8,7 +8,7 @@
  #define CI_SURCHARGE        <-> _CI(libelle="Compteur de surcharge EDF", unite="fois" );
  #define VISUEL_CI_SURCHARGE <-> _I(forme="cadran",mode="texte", libelle="Compteur de surcharge EDF", input=CI_SURCHARGE);
 
- #define MSG_SURCHARGE <-> _MSG(type=alarme,libelle="Alarme surcharge EDF à $TINFO_EDF:CHARGE");
+ #define MSG_SURCHARGE <-> _MSG(type=alarme,libelle="Alarme surcharge EDF à $TINFO_EDF:INTENSITE");
  #define CONSO_TOTALE  <-> _R (libelle="Consommation facturée de la maison",unite="W");
  #define BASEold       <-> _R(libelle="Photo de l'index de base une minute avant", unite="Wh");
 
