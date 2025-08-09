@@ -32,7 +32,7 @@
   #define MSG_MODE_MANU       <-> _MSG(type=etat,libelle="Mode manuel engagé");
   #define MSG_ON              <-> _MSG(type=etat,libelle="VMC activée");
   #define MSG_OFF             <-> _MSG(type=etat,libelle="VMC désactivée");
-  #define MSG_VMC_UPS_FAIL    <-> _MSG(type=etat,libelle="VMC désactivée sur UPS hors ligne");
+  #define MSG_NO_EDF          <-> _MSG(type=etat,libelle="VMC désactivée sur absence EDF");
   
   #define VISU_POS_VMC        <-> _I(forme="vmc",libelle="VMC");
   #define VISU_MODE_AUTO      <-> _I(forme="auto_manu",libelle="Mode de fonctionnement de la VMC");
@@ -92,7 +92,7 @@
  /* CALCUL ETAT ATTENDU en mode auto */
    - MODE_AUTO ->
      { switch
-        | - /UPS01:ME_SOURCE_VOLTAGE_OK          ->/ME_WANT_VMC, MSG_VMC_UPS_FAIL;
+        | - SHELLY_EDF:EM10_VOLTAGE  >= 220.0    ->/ME_WANT_VMC, MSG_NO_EDF;
         | - _HEURE >= 07:00 . _HEURE <= 09:00    -> ME_WANT_VMC;
         | - _HEURE >= 12:30 . _HEURE <= 14:00    -> ME_WANT_VMC;
         | - _HEURE >= 19:00 . _HEURE <= 20:00    -> ME_WANT_VMC;
