@@ -1,7 +1,6 @@
  #define ALL_CLOSED     <-> _M   ( libelle="TRUE si tous les ouvrants sont fermées" );
  #define MSG_ALL_CLOSED <-> _MSG ( type=etat, libelle="Tous les ouvrants sont fermés", notif_sms=no );
- - /*CHRDC_PFENETRE:P_CLOSE*/
-   CUISINE_FENETRE:P_CLOSE
+ - CUISINE_FENETRE:P_CLOSE
 /* . SALON_PFENETREG:P_CLOSE*/
 /* . SALON_PFENETRED:P_CLOSE*/
  . ETAGE_FENETRE:P_CLOSE
