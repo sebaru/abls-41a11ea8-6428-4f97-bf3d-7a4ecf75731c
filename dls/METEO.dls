@@ -25,6 +25,6 @@
 
  - METEO_API:SUNRISE -> MSG_SUNRISE;
  - METEO_API:SUNSET  -> MSG_SUNSET;
- - _HEURE = 07:30       -> MSG_METEO_DU_JOUR_1, MSG_METEO_DU_JOUR_2;
+ - _HEURE = 07:00       -> MSG_METEO_DU_JOUR_1, MSG_METEO_DU_JOUR_2;
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
