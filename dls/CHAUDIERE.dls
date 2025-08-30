@@ -40,7 +40,7 @@
   #define MSG_OFF             <-> _MSG(type=etat,libelle="Chaudière désactivée");
   #define MSG_DEF_REPOS       <-> _MSG(type=defaut,libelle="Défaut repos TL Chaudière");
   #define MSG_DEF_TRAVAIL     <-> _MSG(type=defaut,libelle="Défaut travail TL Chaudière");
-  #define MSG_DMD_EXT_CHAUFFE <-> _MSG(type=etat,libelle="Demande externe de chauffe pour 1h");
+  #define MSG_DMD_EXT_CHAUFFE <-> _MSG(type=etat,libelle="Demande d'eau chaude pour une heure");
 
   #define VISU_MODE_AUTO      <-> _I(forme="auto_manu",libelle="Mode de fonctionnement du chauffage");
   #define VISU_POS_TELE       <-> _I(forme="chaudiere_gaz",libelle="Chaudière GAZ");
