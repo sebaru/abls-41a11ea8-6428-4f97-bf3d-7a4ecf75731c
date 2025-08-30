@@ -20,7 +20,7 @@
   #define MSG_VERROU_TEMP_JARDIN_TH     <-> _MSG(type=etat,libelle="Temp. jardin trop haute ($TEMP:JARDIN): Chauffe en arret prioritaire.", notif_sms);
   #define MSG_VERROU_TEMP_MUR_SUD       <-> _MSG(type=etat,libelle="Temp. mur sud trop basse ($TEMP:MUR_SUD): Chauffe en marche forcée.", notif_sms);
   #define MSG_VERROU_OUVRANT_NOT_CLOSED <-> _MSG(type=defaut,libelle="Un ouvrant est ouvert: Chauffe en arret prioritaire.", notif_sms);
-  #define MSG_DMD_EXT_CHAUFFE           <-> _MSG(type=etat,libelle="Demande externe de chauffe pour 1h", notif_sms);
+  #define MSG_DMD_EXT_CHAUFFE           <-> _MSG(type=etat,libelle="Demande de chauffage pour une heure", notif_sms);
   #define MSG_CHAUFFE_ON_GAZ            <-> _MSG(type=etat,libelle="Chauffage central sur GAZ (Temp=$TEMP:JARDIN)", notif_sms);
   #define MSG_CHAUFFE_ON_PAC            <-> _MSG(type=etat,libelle="Chauffage central sur PAC (Temp=$TEMP:JARDIN)", notif_sms);
 
