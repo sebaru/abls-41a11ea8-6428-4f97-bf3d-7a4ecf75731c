@@ -1,9 +1,13 @@
 
-  #define DI_CT      <-> _DI(libelle="Position Contacteur établi Garage");
+  #define DI_CT      <-> _DI(libelle="Position réelle Contacteur établi Garage");
+  #define B_CT       <-> _B(libelle="Position Contacteur établi après anti-rebond");
   #define VISUEL_CT  <-> _I(forme="switch",mode="off");
   #define MSG_CT_ON  <-> _MSG(type=etat, libelle="L'établi est sous tension");
   #define MSG_CT_OFF <-> _MSG(type=etat, libelle="L'établi est hors tension");
 
-  - DI_CT -> VISUEL_CT(mode="on",  libelle="En marche"), MSG_CT_ON;
-  -/DI_CT -> VISUEL_CT(mode="off", libelle="A l'arret"), MSG_CT_OFF;
+  - DI_CT -- daa=5 -> B_CT;
+  -/DI_CT -- daa=5 ->/B_CT;
+
+  - B_CT -> VISUEL_CT(mode="on",  libelle="En marche"), MSG_CT_ON;
+  -/B_CT -> VISUEL_CT(mode="off", libelle="A l'arret"), MSG_CT_OFF;
   
