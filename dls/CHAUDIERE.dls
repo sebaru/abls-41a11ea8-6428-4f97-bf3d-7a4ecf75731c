@@ -123,11 +123,12 @@
         | - CHAUFFAGE_CMDE:ME_WANT_CHAUFFAGE . CHAUFFAGE_CMDE:MODE_GAZ 
                                                    -> ME_WANT_TELE;
         | -/MAISON:MODE_PRESENT                    ->/ME_WANT_TELE;
-        | - (_HEURE >= 06:00 . _HEURE <= 08:00) +
-            (_HEURE >= 18:00 . _HEURE <= 21:00)    -> ME_WANT_TELE;                        /* Chauffage obligatoire pour la douche ! */
-        | - (_SAMEDI + _DIMANCHE) .
-            ( (_HEURE >= 08:00 . _HEURE <= 09:00 ) +
-              (_HEURE >= 21:00 . _HEURE <= 22:00)) -> ME_WANT_TELE;                        /* Chauffage obligatoire la douche ! */
+        | - (_LUNDI + _MARDI + _MERCREDI + _JEUDI + _VENDREDI)
+            . ( (_HEURE >= 06:00 . _HEURE <= 08:00) +
+                (_HEURE >= 18:00 . _HEURE <= 20:00) )  -> ME_WANT_TELE;                        /* Chauffage obligatoire pour la douche ! */
+        | - (_SAMEDI + _DIMANCHE)
+            . ( (_HEURE >= 07:00 . _HEURE <= 09:00) +
+                (_HEURE >= 17:00 . _HEURE <= 19:00) )  -> ME_WANT_TELE;                        /* Chauffage obligatoire pour la douche ! */
         | - -> /ME_WANT_TELE;
      }
 
