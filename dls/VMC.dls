@@ -18,10 +18,9 @@
 /******************************************************************************************************************************/
 
 /* Bits de consommation du module */
-  #define OTXT_START         <-> _E; /* Demande SMS d'activation VMC */
-  #define OTXT_STOP          <-> _E; /* Ordre SMS d'arret VMC */
-  #define OTXT_AUTO          <-> _E; /* Mode automatique VMC engagé via SMS */
-  #define ME_WANT_VMC        <-> _B(libelle="Etat attendu du CT (0=ouvert, 1=ferme)");
+  #define OTXT_START         <-> _DI(map_sms="vmc on"); /* Demande SMS d'activation VMC */
+  #define OTXT_STOP          <-> _DI(map_sms="vmc off"); /* Ordre SMS d'arret VMC */
+  #define OTXT_AUTO          <-> _DI(map_sms="vms auto"); /* Mode automatique VMC engagé via SMS */
 
   /* Bits de production du module */
   #define DO_ACT_VMC         <-> _A; /* Sortie physique de pilotage de la VMC */
@@ -33,13 +32,17 @@
   #define MSG_ON              <-> _MSG(type=etat,libelle="VMC activée");
   #define MSG_OFF             <-> _MSG(type=etat,libelle="VMC désactivée");
   #define MSG_NO_EDF          <-> _MSG(type=etat,libelle="VMC désactivée sur absence EDF");
+  #define MSG_DMD_EXT_VMC     <-> _MSG(type=etat,libelle="Demande de VMC pour une heure");
   
   #define VISU_POS_VMC        <-> _I(forme="vmc",libelle="VMC");
   #define VISU_MODE_AUTO      <-> _I(forme="auto_manu",libelle="Mode de fonctionnement de la VMC");
   #define VISU_BOUTON_IO      <-> _I(forme="bouton_io",libelle="Activer ou Désactiver la VMC");
 
-  /* Bits purement internes au module */
   #define MODE_AUTO          <-> _B(libelle="Mode automatique ou manuel");
+  #define ME_WANT_VMC        <-> _B(libelle="Etat attendu du CT (0=ouvert, 1=ferme)");
+  #define DMD_EXT_VMC        <-> _B(libelle="Demande exterieure de VMC");
+
+  #define TR_VMC_EXT         <-> _T(daa=36000,dma=0,dMa=0,dad=0,libelle="Temporisation de VMC pendant 1h sur demande externe");
 
                                     /*******************************************/
  /***********************************                 EVENEMENTS                ***********************************/
@@ -67,6 +70,17 @@
  /***********************************              FONCTIONS PILOTEES           ***********************************/
                                     /*******************************************/
  
+ /*************************************/
+/* Demande de chauffe exceptionnelle */
+/*************************************/
+  - VISU_BOUTON_IO_CLIC ->
+    { switch
+        | - MODE_AUTO   -> DMD_EXT_VMC;
+        | -             ->/DMD_EXT_VMC;
+    }
+  - DMD_EXT_VMC            -> TR_VMC_EXT, MSG_DMD_EXT_VMC;
+  -/MODE_AUTO + TR_VMC_EXT ->/DMD_EXT_VMC;
+  
  /* ORDRES DU MODULE ----------------------------------------------------------*/
  
  /* Gestion du mode automatique ou non  */
@@ -92,7 +106,8 @@
  /* CALCUL ETAT ATTENDU en mode auto */
    - MODE_AUTO ->
      { switch
-        | - SHELLY_EDF:EM10_VOLTAGE  < 220.0    ->/ME_WANT_VMC, MSG_NO_EDF;
+        | - SHELLY_EDF:EM10_VOLTAGE  < 220.0     ->/ME_WANT_VMC, MSG_NO_EDF;
+        | - DMD_EXT_VMC                          -> ME_WANT_VMC;
         | - _HEURE >= 07:00 . _HEURE <= 09:00    -> ME_WANT_VMC;
         | - _HEURE >= 12:30 . _HEURE <= 14:00    -> ME_WANT_VMC;
         | - _HEURE >= 19:00 . _HEURE <= 20:00    -> ME_WANT_VMC;
@@ -101,10 +116,23 @@
 
 /* DETECTION DIFFERENCE ETAT ATTENDU ET ETAT REEL */
  switch
-  | - MEMSA_OK . ME_WANT_VMC -> DO_ACT_VMC, CI_VMC, TIME_VMC, VISU_POS_VMC(libelle="VMC activée",      mode="on", color=vert),
-                                                              VISU_BOUTON_IO(libelle="VMC activée",    color=vert), MSG_ON;
-  | -                        ->/DO_ACT_VMC,                   VISU_POS_VMC(libelle="VMC désactivée",   mode="off",color=gris),
-                                                              VISU_BOUTON_IO(libelle="VMC désactivée", color=rouge), MSG_OFF;
+  | - MEMSA_OK . ME_WANT_VMC -> DO_ACT_VMC, CI_VMC, TIME_VMC;
+  | -                        ->/DO_ACT_VMC;
+
+/* REPORT MESSAGE ETAT */
+  - DO_ACT_VMC -> MSG_ON;
+  -/DO_ACT_VMC -> MSG_OFF;
+
+/* REPORT VISUELS */
+switch
+  | - DO_ACT_VMC               -> VISU_POS_VMC(libelle="VMC activée",    mode="on", color=vert);
+  | -                          -> VISU_POS_VMC(libelle="VMC désactivée", mode="off",color=gris);
+
+switch
+  | - DO_ACT_VMC . DMD_EXT_VMC -> VISU_BOUTON_IO(libelle="VMC activée pour une heure",    color=vert);
+  | - DO_ACT_VMC               -> VISU_BOUTON_IO(libelle="VMC activée",    color=vert);
+  | - MODE_AUTO                -> VISU_BOUTON_IO(libelle="Activer pour une heure", color=rouge);
+  | -                          -> VISU_BOUTON_IO(libelle="VMC désactivée", color=rouge);
 
  - MODE_AUTO                             -> MSG_MODE_AUTO, VISU_MODE_AUTO(libelle="Mode AUTO",   mode="auto");
  -/MODE_AUTO                             -> MSG_MODE_MANU, VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu",cligno);
