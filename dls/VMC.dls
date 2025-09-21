@@ -29,6 +29,7 @@
 
   #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
   #define MSG_MODE_MANU       <-> _MSG(type=etat,libelle="Mode manuel engagé");
+  #define MSG_ON_1_HEURE      <-> _MSG(type=etat,libelle="VMC activée pour une heure");
   #define MSG_ON              <-> _MSG(type=etat,libelle="VMC activée");
   #define MSG_OFF             <-> _MSG(type=etat,libelle="VMC désactivée");
   #define MSG_NO_EDF          <-> _MSG(type=etat,libelle="VMC désactivée sur absence EDF");
@@ -120,8 +121,9 @@
   | -                        ->/DO_ACT_VMC;
 
 /* REPORT MESSAGE ETAT */
-  - DO_ACT_VMC -> MSG_ON;
-  -/DO_ACT_VMC -> MSG_OFF;
+  - DO_ACT_VMC . DMD_EXT_VMC -> MSG_ON_1_HEURE;
+  - DO_ACT_VMC ./DMD_EXT_VMC -> MSG_ON;
+  -/DO_ACT_VMC               -> MSG_OFF;
 
 /* REPORT VISUELS */
 switch
