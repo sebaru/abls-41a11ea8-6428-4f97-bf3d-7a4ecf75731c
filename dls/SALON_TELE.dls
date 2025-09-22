@@ -5,12 +5,12 @@
  #define VISU_STOP_FIREFOX <-> _I(forme="panneau_stop", libelle="Arreter Firefox", color="lightblue");
  #define VISU_WTD_OZOIR    <-> _I(forme="logo", libelle="Wtd Ozoir");
  
-/* #define ALLUMER_CROCODILE  <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://www.youtube.com/watch?v=1T9b0cax6s4");
- #define ALLUMER_BEBE_LOUIS <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://www.youtube.com/watch?v=BU55PEV6CcQ");
- #define ALLUMER_PEPPA_PIG  <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://www.youtube.com/watch?v=0xid8ji3bwU");
- #define ALLUMER_WTD_OZOIR  <-> _BUS(tech_id="THOT", tag="execute", target="firefox https://wtd-ozoir.abls-habitat.fr");
- #define ETEINDRE_FIREFOX   <-> _BUS(tech_id="THOT", tag="execute", target="pkill -KILL -f firefox");
- #define ETEINDRE_TELE      <-> _BUS(tech_id="THOT", tag="execute", target="sudo poweroff");*/
+ #define ALLUMER_CROCODILE  <-> _BUS(tech_id="SARAPIS", tag="execute", command="firefox https://www.youtube.com/watch?v=1T9b0cax6s4");
+ #define ALLUMER_BEBE_LOUIS <-> _BUS(tech_id="SARAPIS", tag="execute", command="firefox https://www.youtube.com/watch?v=BU55PEV6CcQ");
+ #define ALLUMER_PEPPA_PIG  <-> _BUS(tech_id="SARAPIS", tag="execute", command="firefox https://www.youtube.com/watch?v=0xid8ji3bwU");
+ #define ALLUMER_WTD_OZOIR  <-> _BUS(tech_id="SARAPIS", tag="execute", command="firefox https://wtd-ozoir.abls-habitat.fr");
+ #define ETEINDRE_FIREFOX   <-> _BUS(tech_id="SARAPIS", tag="execute", command="pkill -KILL -f firefox");
+ #define ETEINDRE_TELE      <-> _BUS(tech_id="SARAPIS", tag="execute", command="sudo poweroff");
  
  #define MSG_EXTINCTION     <-> _MSG(type=etat, libelle="La télé va s'éteindre, merci de ne pas chouiner, bisous");
  #define MSG_PYJAMA         <-> _MSG(type=etat, libelle="Lucas, tu as mis ton pyjama et les dents sont lavées ?");
