@@ -16,7 +16,7 @@
  #define MSG_PYJAMA         <-> _MSG(type=etat, libelle="Lucas, tu as mis ton pyjama et les dents sont lavées ?");
 
  - _TRUE               -> VISU_CROCODILE;
- - VISU_CROCODILE_CLIC -> MSG_PYJAMA;
+ - VISU_CROCODILE_CLIC -> ALLUMER_CROCODILE, MSG_PYJAMA;
 
  - _TRUE                -> VISU_BEBE_LOUIS;
  - VISU_BEBE_LOUIS_CLIC -> ALLUMER_BEBE_LOUIS;
