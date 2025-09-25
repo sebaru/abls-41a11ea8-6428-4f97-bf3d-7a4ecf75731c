@@ -109,7 +109,7 @@
      { switch
         | - SHELLY_EDF:EM10_VOLTAGE  < 220.0     ->/ME_WANT_VMC, MSG_NO_EDF;
         | - DMD_EXT_VMC                          -> ME_WANT_VMC;
-        | - _HEURE >= 07:00 . _HEURE <= 09:00    -> ME_WANT_VMC;
+        | - _HEURE >= 06:00 . _HEURE <= 09:00    -> ME_WANT_VMC;
         | - _HEURE >= 12:30 . _HEURE <= 14:00    -> ME_WANT_VMC;
         | - _HEURE >= 19:00 . _HEURE <= 20:00    -> ME_WANT_VMC;
         | - -> /ME_WANT_VMC;
