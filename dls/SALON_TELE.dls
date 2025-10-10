@@ -31,7 +31,7 @@
   | - AUDIO_SARAPIS:IO_COMM -> VISU_BOUTON ( color="green", libelle="La télé est allumée" );
   | -                       -> VISU_BOUTON ( color="red",   libelle="La télé est éteinte" );
 
- - VISU_BOUTON_CLIC -> MSG_EXTINCTION; /*ETEINDRE_TELE;*/
+ - VISU_BOUTON_CLIC -> MSG_EXTINCTION, ETEINDRE_TELE;
 
  - _TRUE                -> VISU_WTD_OZOIR;
  - VISU_WTD_OZOIR_CLIC  -> ALLUMER_WTD_OZOIR;
