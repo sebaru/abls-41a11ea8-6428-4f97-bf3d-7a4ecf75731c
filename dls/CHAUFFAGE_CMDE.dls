@@ -11,10 +11,6 @@
   #define MODE_ENERGIE_GAZ    <-> _B(groupe=2,libelle="Chauffage par la chaudiere gaz");
   #define MODE_ENERGIE_PAC    <-> _B(groupe=2,libelle="Chauffage par la pompe a chaleur");
  
-  #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
-  #define MSG_MODE_SAUTO      <-> _MSG(type=etat,libelle="Mode semi-automatique engagé");
-  #define MSG_MODE_MANU       <-> _MSG(type=etat,libelle="Mode manuel engagé");
-
   #define MSG_VERROU_TEMP_BALLON_TB     <-> _MSG(type=defaut,libelle="Température ballon trop basse ($TEMP:BALLON_HAUT): Chauffe impossible.", notif_sms);
   #define MSG_VERROU_TEMP_JARDIN_TH     <-> _MSG(type=etat,libelle="Temp. jardin trop haute ($TEMP:JARDIN): Chauffe en arret prioritaire.", notif_sms);
   #define MSG_VERROU_TEMP_MUR_SUD       <-> _MSG(type=etat,libelle="Temp. mur sud trop basse ($TEMP:MUR_SUD): Chauffe en marche forcée.", notif_sms);
@@ -28,6 +24,9 @@
   #define VISU_BOUTON_IO            <-> _I(forme="led",libelle="Activer ou Désactiver le chauffage");
   #define VISU_RADIATEUR            <-> _I(forme="radiateur",libelle="Radiateurs");
 
+  #define MSG_MODE_AUTO             <-> _MSG(type=etat,libelle="Mode automatique engagé");
+  #define MSG_MODE_SAUTO            <-> _MSG(type=etat,libelle="Mode semi-automatique engagé");
+  #define MSG_MODE_MANU             <-> _MSG(type=etat,libelle="Mode manuel engagé");
   #define MODE_AUTO                 <-> _B(groupe=1,libelle="Mode automatique");
   #define MODE_SAUTO                <-> _B(groupe=1,libelle="Mode semi-automatique");
   #define MODE_MANU                 <-> _B(groupe=1,libelle="Mode manuel");
