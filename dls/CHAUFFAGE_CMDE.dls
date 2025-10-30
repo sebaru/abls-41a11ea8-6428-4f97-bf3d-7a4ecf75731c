@@ -7,10 +7,9 @@
   #define AC_VANNE_PILOTE     <-> _DO; /* Vanne conduite chauffage chaudiere */
   #define WTD_VANNE_MANOEUVRE <-> _WATCHDOG(libelle="Watchdog de manoeuvre vanne chauffage chaudiere", consigne=200 );
   
-  #define CALCUL_MODE_GAZ     <-> _M(libelle="Calcul du mode d'energie GAZ");
-  #define CALCUL_MODE_PAC     <-> _M(libelle="Calcul du mode d'energie PAC");
-  #define MODE_GAZ            <-> _B(groupe=2,libelle="Chauffage par la chaudiere gaz");
-  #define MODE_PAC            <-> _B(groupe=2,libelle="Chauffage par la pompe a chaleur");
+  #define MODE_ENERGIE_LOCK   <-> _B(libelle="TRUE si la source d'energie est lockée");
+  #define MODE_ENERGIE_GAZ    <-> _B(groupe=2,libelle="Chauffage par la chaudiere gaz");
+  #define MODE_ENERGIE_PAC    <-> _B(groupe=2,libelle="Chauffage par la pompe a chaleur");
  
   #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
   #define MSG_MODE_SAUTO      <-> _MSG(type=etat,libelle="Mode semi-automatique engagé");
@@ -47,34 +46,41 @@
 /******************************************/
 /* Gestion de la source d"energie         */
 /******************************************/
-  - VISUEL_MODE_ENERGIE_CLIC ->
+  - VISUEL_MODE_ENERGIE_LONGCLIC ->
     { switch
-       | - MODE_GAZ -> MODE_PAC;
-       | -          -> MODE_GAZ;
+       | - MODE_ENERGIE_LOCK ->/MODE_ENERGIE_LOCK;
+       | -                   -> MODE_ENERGIE_LOCK;
+    }
+
+  - MODE_ENERGIE_LOCK . VISUEL_MODE_ENERGIE_CLIC ->
+    { switch
+       | - MODE_ENERGIE_GAZ -> MODE_ENERGIE_PAC;
+       | -                  -> MODE_ENERGIE_GAZ;
     }
 
 /* Critères de forcage GAZ  */
 
-  - TEMP:JARDIN < 8.0        -> CALCUL_MODE_GAZ;
-  - CALCUL_MODE_GAZ(edge_up) -> MODE_GAZ;
-
-  - TEMP:JARDIN > 10.0       -> CALCUL_MODE_PAC;
-  - CALCUL_MODE_PAC(edge_up) -> MODE_PAC;
+  -/MODE_ENERGIE_LOCK . TEMP:JARDIN < 8.0  -> MODE_ENERGIE_GAZ;
+  -/MODE_ENERGIE_LOCK . TEMP:JARDIN > 10.0 -> MODE_ENERGIE_PAC;
 
   switch
-   | - MODE_GAZ -> VISUEL_MODE_ENERGIE(mode="gaz", libelle="Chauffage en Source GAZ"), MSG_CHAUFFE_ON_GAZ;
-   | - MODE_PAC -> VISUEL_MODE_ENERGIE(mode="edf", libelle="Chauffage en Source PAC"), MSG_CHAUFFE_ON_PAC;
-   | -          -> VISUEL_MODE_ENERGIE(disable, libelle="Source inconnue");
+   | - MODE_ENERGIE_GAZ -> VISUEL_MODE_ENERGIE(mode="gaz", libelle="Chauffage en Source GAZ"), MSG_CHAUFFE_ON_GAZ;
+   | - MODE_ENERGIE_PAC -> VISUEL_MODE_ENERGIE(mode="edf", libelle="Chauffage en Source PAC"), MSG_CHAUFFE_ON_PAC;
+   | -                  -> VISUEL_MODE_ENERGIE(disable, libelle="Source inconnue");
+
+  switch
+   | - MODE_ENERGIE_LOCK -> VISUEL_MODE_ENERGIE(badge="lock");
+   | -                   -> VISUEL_MODE_ENERGIE(badge="none");
 
 /******************************************/
 /* Gestion de la vanne chaudiere          */
 /******************************************/
- - MODE_PAC(edge_up) + MODE_GAZ(edge_up) + _START
-                                  -> WTD_VANNE_MANOEUVRE; /* Demande de manoeuvre: sur action user ou sur recompil */
- - WTD_VANNE_MANOEUVRE            -> AC_VANNE_POWER;
- - WTD_VANNE_MANOEUVRE . MODE_GAZ -> AC_VANNE_PILOTE;
- - WTD_VANNE_MANOEUVRE . MODE_PAC ->/AC_VANNE_PILOTE;
- -/WTD_VANNE_MANOEUVRE            ->/AC_VANNE_POWER, /AC_VANNE_PILOTE;
+ - MODE_ENERGIE_PAC(edge_up) + MODE_ENERGIE_GAZ(edge_up) + _START
+                                          -> WTD_VANNE_MANOEUVRE; /* Demande de manoeuvre: sur action user ou sur recompil */
+ - WTD_VANNE_MANOEUVRE                    -> AC_VANNE_POWER;
+ - WTD_VANNE_MANOEUVRE . MODE_ENERGIE_GAZ -> AC_VANNE_PILOTE;
+ - WTD_VANNE_MANOEUVRE . MODE_ENERGIE_PAC ->/AC_VANNE_PILOTE;
+ -/WTD_VANNE_MANOEUVRE                    ->/AC_VANNE_POWER, /AC_VANNE_PILOTE;
  
 /****************************/
 /* Critères de verrouillage */
