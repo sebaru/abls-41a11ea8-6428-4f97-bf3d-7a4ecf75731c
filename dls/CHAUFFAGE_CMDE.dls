@@ -66,11 +66,11 @@
    | - MODE_ENERGIE_GAZ -> VISUEL_MODE_ENERGIE(mode="gaz", libelle="Chauffage en Source GAZ"), MSG_CHAUFFE_ON_GAZ;
    | - MODE_ENERGIE_PAC -> VISUEL_MODE_ENERGIE(mode="edf", libelle="Chauffage en Source PAC"), MSG_CHAUFFE_ON_PAC;
    | -                  -> VISUEL_MODE_ENERGIE(disable, libelle="Source inconnue");
-
+/*
   switch
    | - MODE_ENERGIE_LOCK -> VISUEL_MODE_ENERGIE(badge="lock");
    | -                   -> VISUEL_MODE_ENERGIE(badge="none");
-
+*/
 /******************************************/
 /* Gestion de la vanne chaudiere          */
 /******************************************/
