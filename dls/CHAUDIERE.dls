@@ -120,7 +120,7 @@
    - MODE_AUTO ./ME_ACT_TELE ->
      { switch
         | - DMD_EXT_CHAUFFE                        -> ME_WANT_TELE;
-        | - CHAUFFAGE_CMDE:ME_WANT_CHAUFFAGE . CHAUFFAGE_CMDE:MODE_GAZ 
+        | - CHAUFFAGE_CMDE:ME_WANT_CHAUFFAGE . CHAUFFAGE_CMDE:MODE_ENERGIE_GAZ 
                                                    -> ME_WANT_TELE;
         | -/MAISON:MODE_PRESENT                    ->/ME_WANT_TELE;
         | - (_LUNDI + _MARDI + _MERCREDI + _JEUDI + _VENDREDI)
