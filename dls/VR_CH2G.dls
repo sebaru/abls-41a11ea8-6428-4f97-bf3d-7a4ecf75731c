@@ -46,8 +46,8 @@
  #define ACT_TL_OUVRE <-> _DO; /* Activation de la montée */
  #define ACT_TL_FERME <-> _DO; /* Activation de la descente */
 
- #define VOLET_IS_LOCKED   <-> _B(groupe=1,libelle="Volet locked");
  #define VOLET_IS_UNLOCKED <-> _B(groupe=1,libelle="Volet unlocked");
+ #define VOLET_IS_LOCKED   <-> _B(groupe=1,libelle="Volet locked");
 
  #define VOLET_SUPPOSE_FERME <-> _B(libelle="TRUE si l'etat du volet est supposé fermé");
 
