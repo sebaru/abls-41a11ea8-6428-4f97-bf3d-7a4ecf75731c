@@ -7,8 +7,8 @@
  #define VISUEL_PRODUCTION <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=400,seuil_nb=600, input=PRODUCTION);
  
  #define INTENSITE                <-> _AI; /* Intensité instantanée des panneaux PPV01 */
- #define VISUEL_INTENSITE         <-> _I(forme="cadran", mode="progress-rov",min=0,max=6,seuil_ntb=0.2,seuil_nb=0.5, input=INTENSITE); /* Intensité instantanée des panneaux PPV01 */
  #define INTENSITE_CALCUL         <-> _REGISTRE(libelle="Intensité calculée sans la conso de fonctionnement");
+ #define VISUEL_INTENSITE         <-> _I(forme="cadran", mode="progress-rov",min=0,max=6,seuil_ntb=0.2,seuil_nb=0.5, input=INTENSITE_CALCUL); /* Intensité instantanée des panneaux PPV01 */
  #define MSG_INTENSITE_NOTINRANGE <-> _MSG(type=defaut,libelle="Intensité instantanée Not In Range !");
 
                                     /*******************************************/
