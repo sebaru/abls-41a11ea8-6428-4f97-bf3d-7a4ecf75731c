@@ -122,7 +122,7 @@
         | - DMD_EXT_CHAUFFE                        -> ME_WANT_TELE;
         | - CHAUFFAGE_CMDE:ME_WANT_CHAUFFAGE . CHAUFFAGE_CMDE:SOURCE_ENERGIE_IS_GAZ 
                                                    -> ME_WANT_TELE;
-        | -/MAISON:MODE_PRESENT                    ->/ME_WANT_TELE;
+        | -/SECURITE:MODE_PRESENT                    ->/ME_WANT_TELE;
         | - (_LUNDI + _MARDI + _MERCREDI + _JEUDI + _VENDREDI)
             . ( (_HEURE >= 06:00 . _HEURE <= 08:00) +
                 (_HEURE >= 18:00 . _HEURE <= 20:00) )  -> ME_WANT_TELE;                        /* Chauffage obligatoire pour la douche ! */
