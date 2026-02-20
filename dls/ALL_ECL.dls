@@ -35,7 +35,7 @@
                                SALON_ECL:ODLS_WANT_ON,
                                SALON_PCC:ODLS_WANT_ON;
                                
-  - MAISON:MODE_AVION ->
+  - SECURITE:MODE_AVION ->
     {
       - METEO_API:SUNSET   -> SALON_ECL:ODLS_WANT_ON;
       - _HEURE = 22:00 -> SALON_ECL:ODLS_WANT_OFF;
