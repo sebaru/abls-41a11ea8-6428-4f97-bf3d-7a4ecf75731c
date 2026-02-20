@@ -1,0 +1,24 @@
+ #define VISUEL_MAISON  <-> _I(forme="check", mode="unchecked", libelle="Mode de la maison");
+ #define VISUEL_PRESENT <-> _I(forme="cadenas", mode="ouvert", libelle="On est la");
+ #define VISUEL_VALISE  <-> _I(forme="valise", libelle="On s'en va pas trop loin");
+ #define VISUEL_AVION   <-> _I(forme="avion", libelle="On s'en va en vacances");
+
+ #define MODE_PRESENT   <-> _B(groupe=1,libelle="On est a la maison");
+ #define MODE_VALISE    <-> _B(groupe=1,libelle="On est pas trop loin");
+ #define MODE_AVION     <-> _B(groupe=1,libelle="On est très loin");
+ 
+
+ #define MSG_MODE_PRESENT <-> _MSG(type=etat, libelle="On est a la maison !");
+ #define MSG_MODE_VALISE  <-> _MSG(type=etat, libelle="Maison en mode absence courte");
+ #define MSG_MODE_AVION   <-> _MSG(type=etat, libelle="Maison en mode absence longue");
+ 
+/************** Evenements ***********/
+ - VISUEL_PRESENT_CLIC -> MODE_PRESENT;
+ - VISUEL_VALISE_CLIC  -> MODE_VALISE, VR_ALL:O_DLS_ALL_CLOSE, ALL_ECL:O_DLS_ALL_OFF;
+ - VISUEL_AVION_CLIC   -> MODE_AVION,  VR_ALL:O_DLS_ALL_CLOSE, ALL_ECL:O_DLS_ALL_OFF;
+ - MODE_AVION . _HEURE = 21:00 -> VR_ALL:O_DLS_ALL_CLOSE;
+
+ /************** Messages ***********/
+ - MODE_PRESENT -> MSG_MODE_PRESENT, VISUEL_MAISON(mode="unchecked", libelle="Maison non surveillée");
+ - MODE_VALISE  -> MSG_MODE_VALISE,  VISUEL_MAISON(mode="unchecked_but_ok", libelle="Maison sous surveillance limitée");
+ - MODE_AVION   -> MSG_MODE_AVION,   VISUEL_MAISON(mode="checked", libelle="Maison sous surveillance totale");
