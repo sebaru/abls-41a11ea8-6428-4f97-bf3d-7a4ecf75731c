@@ -162,8 +162,8 @@
         | - VERROU_TEMP_MUR_SUD                       -> ME_WANT_CHAUFFAGE;  /* Chauffage obligatoire si temp ext < 2° */
         | - DMD_EXT_CHAUFFE                           -> ME_WANT_CHAUFFAGE;  /* Si demande de chauffe externe */
         | - VERROU_TEMP_BALLON_TB                     ->/ME_WANT_CHAUFFAGE;  /* Si verrou temp trop basse ballon */
-        | - MAISON:MODE_VALISE                        ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
-        | - MAISON:MODE_AVION                         ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
+        | - SECURITE:MODE_VALISE                        ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
+        | - SECURITE:MODE_AVION                         ->/ME_WANT_CHAUFFAGE;  /* si personne a la maison */
         | - _HEURE >= 05:30 . _HEURE <= 07:00         -> ME_WANT_CHAUFFAGE;  /* Chauffage obligatoire de 5 à 8 pour la salle de bain ! */
         | - VERROU_OUVRANT_NOT_CLOSED                 ->/ME_WANT_CHAUFFAGE;  /* Chauffage interdit si un ouvrant est ouvert */
         | - VERROU_TEMP_JARDIN_TH                     ->/ME_WANT_CHAUFFAGE;  /* Si la température du jardin est trop haute */
