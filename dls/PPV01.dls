@@ -3,7 +3,7 @@
  #define MSG_DISABLE <-> _MSG(type=etat,libelle="Panneaux Photovoltaïques NON branchés au réseau EDF.");
 
  #define TICK_WH     <-> _DI; /* 1 Wh par Impulsion */
- #define CI_WH       <-> _CI;
+ #define CI_WH       <-> _CI(libelle="Nombre de Wh récupéré");
  
  #define PRODUCTION  <-> _R(libelle="Production d'energie", unite="W");
  #define VISUEL_PRODUCTION <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=400,seuil_nb=600, input=PRODUCTION);
