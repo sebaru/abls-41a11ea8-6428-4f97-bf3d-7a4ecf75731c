@@ -1,2 +1,2 @@
-#define VISUEL_CONSOMMATION <-> _I(forme="cadran", mode="progress-vor", min=0,max=1000,seuil_nh=500,seuil_nth=800, input=EM10_ACT_POWER);
+#define VISUEL_CONSOMMATION <-> _I(forme="cadran", mode="progress-vor", min=0,max=1000,seuil_nh=0,seuil_nth=500, input=EM10_ACT_POWER);
 #define VISUEL_INJECTION    <-> _I(forme="cadran", mode="progress-vor", min=0,max=10,seuil_nh=2,seuil_nth=4, input=EM10_INJECTION);
