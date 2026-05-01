@@ -6,7 +6,7 @@
  #define CI_WH       <-> _CI(libelle="Nombre de Wh récupéré");
  
  #define PRODUCTION  <-> _R(libelle="Production d'energie", unite="W");
- #define VISUEL_PRODUCTION <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=400,seuil_nb=600, input=PRODUCTION);
+ #define VISUEL_PRODUCTION <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=50,seuil_nb=100, input=PRODUCTION);
  
  #define INTENSITE                <-> _AI; /* Intensité instantanée des panneaux PPV01 */
  #define INTENSITE_CALCUL         <-> _REGISTRE(libelle="Intensité calculée sans la conso de fonctionnement", unite="A");
