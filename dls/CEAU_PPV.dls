@@ -15,7 +15,7 @@
      - 0.0    -> VOLTAGE_CONSIGNE;
    }
 
- - TOP_5HZ -> /* Calcul 5 fois par secondes */
+ - TOP_1SEC -> /* Calcul 5 fois par secondes */
    { - SHELLY_EDF:EM10_ACT_POWER <  0.0 -> { - VOLTAGE_CONSIGNE + 0.3 -> VOLTAGE_CONSIGNE; }
      - SHELLY_EDF:EM10_ACT_POWER >= 0.0 -> { - VOLTAGE_CONSIGNE - 0.1 -> VOLTAGE_CONSIGNE; }
    }
