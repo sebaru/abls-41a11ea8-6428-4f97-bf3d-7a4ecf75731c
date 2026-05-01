@@ -1,1 +1,2 @@
-/* */
+#define VISUEL_CONSOMMATION <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=400,seuil_nb=600, input=EM10_ENERGY);
+#define VISUEL_INJECTION    <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=400,seuil_nb=600, input=EM10_INJECTION);
