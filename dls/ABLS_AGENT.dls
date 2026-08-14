@@ -1,0 +1,17 @@
+/******************************************************************************************************************************/
+/* Module DLS de pilotage des agents système via un bouton de supervision                                                     */
+/* Auteur : Sébastien                                                                                                         */
+/* Date de création : 22/05/2026                                                                                              */
+/******************************************************************************************************************************/
+
+ #define VISU_BOUTON      <-> _I(forme="bouton_io", color="gray", libelle="Arrêt système");
+ #define ETEINDRE_MACHINE <-> _BUS(tech_id="$AGENT_HOSTNAME", commande="sudo poweroff");
+ #define MSG_EXTINCTION   <-> _MSG(type=etat, libelle="Extinction demandée — arrêt en cours");
+
+ #param AGENT_HOSTNAME (libelle="Hostname de l'agent", defaut="MASTER");
+
+ switch 
+  | - $AGENT_HOSTNAME:IO_COMM -> VISU_BOUTON(color="lightgreen");
+  | -                         -> VISU_BOUTON(color="grey");
+
+ - VISU_BOUTON_CLIC        -> MSG_EXTINCTION, ETEINDRE_MACHINE;
