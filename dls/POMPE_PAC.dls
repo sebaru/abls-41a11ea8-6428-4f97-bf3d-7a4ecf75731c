@@ -78,8 +78,8 @@
 /****************************/
 /* Critères de verrouillage */
 /****************************/ 
-  - TEMP:BALLON_HAUT >= 70.0 -> VERROU_TEMP_BALLON_TH; /* Verrou si température haute */
-  - TEMP:BALLON_HAUT <  70.0 -- daa=6000 ->/VERROU_TEMP_BALLON_TH;
+  - TEMP:BALLON_HAUT >= 65.0 -> VERROU_TEMP_BALLON_TH; /* Verrou si température haute */
+  - TEMP:BALLON_HAUT <  60.0 ->/VERROU_TEMP_BALLON_TH;
   - VERROU_TEMP_BALLON_TH    -> MSG_VERROU_TEMP_BALLON_TH;
 
 /**************************************************/
