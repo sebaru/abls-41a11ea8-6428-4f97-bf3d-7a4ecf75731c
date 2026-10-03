@@ -1,11 +1,29 @@
+/* Gestion de la fermeture globale de tous les ouvrants. */
+/* S.LEFEVRE - 2026/03/09 */
+
  #define ALL_CLOSED     <-> _M   ( libelle="TRUE si tous les ouvrants sont fermées" );
  #define MSG_ALL_CLOSED <-> _MSG ( type=etat, libelle="Tous les ouvrants sont fermés", notif_sms=no );
+ #define VISUEL_ALL_CLOSED <-> _VISUEL(forme="check", mode="unchecked");
+ 
+ #link PORTE_ENTREE:VISUEL_FENETRE;
+ #link CUISINE_FENETRE:VISUEL_FENETRE;
+ #link SALON_PFENETREG:VISUEL_FENETRE;
+ #link SALON_PFENETRED:VISUEL_FENETRE;
+ #link CHRDC_PFENETRE:VISUEL_FENETRE;
+ #link CH1_FENETRE:VISUEL_FENETRE;
+ #link CH2_FENETREG:VISUEL_FENETRE;
+ #link CH2_FENETRED:VISUEL_FENETRE;
+ #link ETAGE_FENETRE:VISUEL_FENETRE;
+ #link SDB1ER_FENETRE:VISUEL_FENETRE;
+ #link SDBRDC_FENETRE:VISUEL_FENETRE;
+ #link BUREAU_FENETRE:VISUEL_FENETRE;
+
  - CUISINE_FENETRE:P_CLOSE
  . SALON_PFENETREG:P_CLOSE
  . SALON_PFENETRED:P_CLOSE
  . CHRDC_PFENETRE:P_CLOSE
  . PORTE_ENTREE:P_CLOSE
-/* . SDBRDC_FENETRE:P_CLOSE*/
+ . SDBRDC_FENETRE:P_CLOSE
  . CH1_FENETRE:P_CLOSE
  . CH2_FENETREG:P_CLOSE
  . CH2_FENETRED:P_CLOSE
@@ -14,6 +32,9 @@
  . BUREAU_FENETRE:P_CLOSE
  /*. CUISINE_PORTE_GARAGE:P_CLOSE */
  -> ALL_CLOSED;
+
+ switch
+  | - ALL_CLOSED -> VISUEL_ALL_CLOSED(mode="checked", libelle="Tout est fermé"), MSG_ALL_CLOSED;
+  | -            -> VISUEL_ALL_CLOSED(mode="unchecked", libelle="Tout n'est pas fermé");
  
- - ALL_CLOSED -> MSG_ALL_CLOSED;
- 
+/*-------------------------------------------------------------------------------------------------------------------------------*/
