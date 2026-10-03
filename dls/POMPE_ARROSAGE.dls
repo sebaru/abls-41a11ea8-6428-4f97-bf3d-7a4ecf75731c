@@ -1,0 +1,26 @@
+
+ #define VISUEL_POMPE      <-> _I(forme="voyant", color="grey");
+ #define B_POMPE_WANTED    <-> _B(libelle="Etat attendu de la pompe");
+ #define DO_SET_POMPE      <-> _DO(libelle="Sortie de commande de la pompe");
+ 
+ #define MSG_POMPE_IS_ON  <-> _MSG(type=etat,libelle="Pompe en marche");
+ #define MSG_POMPE_IS_OFF <-> _MSG(type=etat,libelle="Pompe à l'arrêt");
+  
+/******************************************/
+/* Gestion de la vanne arrosage PELOUSE   */
+/******************************************/
+ - VISUEL_POMPE_CLIC ->
+    { switch
+       | -/B_POMPE_WANTED -> B_POMPE_WANTED;
+       | -                ->/B_POMPE_WANTED;
+    }
+    
+/* Manoeuvre CT */
+ -/B_POMPE_WANTED ->/DO_SET_POMPE;
+ - B_POMPE_WANTED -> DO_SET_POMPE;
+ 
+/* Report visuel et messages */
+ switch
+  | - DO_SET_POMPE -> VISUEL_POMPE(libelle="Allumée",   color="green"), MSG_POMPE_IS_ON;
+  | -              -> VISUEL_POMPE(libelle="A l'arrêt", color="grey"),  MSG_POMPE_IS_OFF;
+ 
