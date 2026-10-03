@@ -1,0 +1,13 @@
+ #define VISUEL_LUMIERE <-> _I(libelle="Lumière Arbre jardin", forme="ampoule", mode="off");
+ #define DO_SET_CT <-> _DO(libelle="Activation CT lumère arbre jardin" );
+ #define B_SET_ON <-> _B(libelle="Etat attendu de la lumière arbre jardin");
+ 
+ switch
+  | -/VISUEL_LUMIERE_CLIC -> _NOP;
+  | -/B_SET_ON            -> B_SET_ON;
+  | -                     ->/B_SET_ON;
+  
+ switch 
+  | - B_SET_ON -> DO_SET_CT, VISUEL_LUMIERE(mode="on");
+  | -          ->/DO_SET_CT, VISUEL_LUMIERE(mode="off");
+ 
