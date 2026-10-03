@@ -1,0 +1,21 @@
+
+ #define IS_ON_GRID      <-> _DI(libelle="L'onduleur est couplé sur EDF");
+ #define SET_OFF_GRID    <-> _DO(libelle="Met l'onduleur hors tension EDF");
+
+ #define MSG_IS_ON_GRID  <-> _MSG(type=etat, libelle="Onduleur couplé EDF");
+ #define MSG_IS_OFF_GRID <-> _MSG(type=etat, libelle="Onduleur découplé EDF");
+ 
+ #define VISUEL_SOURCE   <-> _VISUEL(forme="energie", mode="edf");
+
+ #define VISUEL_NRJ_APP   <-> _VISUEL(forme="cadran", input=SHELLY_EDF:	EM11_APRT_POWER);
+ #define VISUEL_NRJ_ACT   <-> _VISUEL(forme="cadran", input=SHELLY_EDF:	EM11_ACT_POWER);
+ #define VISUEL_INTENSITE <-> _VISUEL(forme="cadran", input=SHELLY_EDF:	EM11_CURRENT);
+
+ switch 
+  | -/VISUEL_SOURCE_CLIC -> _NOP;
+  | - SET_OFF_GRID -> /SET_OFF_GRID;
+  | -              ->  SET_OFF_GRID;
+  
+ - SET_OFF_GRID -> VISUEL_SOURCE(mode="batterie", libelle="Onduleur découplé EDF"), MSG_IS_OFF_GRID;
+ -/SET_OFF_GRID -> VISUEL_SOURCE(mode="edf", libelle="Onduleur couplé EDF"),   MSG_IS_ON_GRID;
+
