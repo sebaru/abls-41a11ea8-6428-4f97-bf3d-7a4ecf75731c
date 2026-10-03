@@ -16,15 +16,20 @@
  #define VISU_DAY0_TEMP_MIN    <-> _I(forme="cadran", mode="texte", input=METEO_API:DAY0_TEMP_MIN);
  #define VISU_DAY0_TEMP_MAX    <-> _I(forme="cadran", mode="texte", input=METEO_API:DAY0_TEMP_MAX);
  #define VISU_DAY0_PROBA_PLUIE <-> _I(forme="cadran", mode="progress-vor", min=0.0, max=100.0, seuil_nh=30.0, seuil_nth=70,decimal=0, input=METEO_API:DAY0_PROBA_PLUIE);
+/* #define VISU_DAY0_PROBA_PLUIE_MM     <-> _I(forme="cadran", mode="texte", min=0.0, max=10.0, seuil_nh=5.0, seuil_nth=8,decimal=1, input=METEO_API:DAY0_PROBA_PLUIE_MM);*/
+/* #define VISU_DAY0_PROBA_PLUIE_MM_MAX <-> _I(forme="cadran", mode="texte", min=0.0, max=10.0, seuil_nh=5.0, seuil_nth=8,decimal=1, input=METEO_API:DAY0_PROBA_PLUIE_MM_MAX);*/
  #define VISU_DAY0_PROBA_GEL   <-> _I(forme="cadran", mode="progress-vor", min=0.0, max=100.0, seuil_nh=30.0, seuil_nth=70,decimal=0, input=METEO_API:DAY0_PROBA_GEL);
 
  #define MSG_SUNRISE           <-> _MSG(libelle="Le soleil se lève", notif_sms);
  #define MSG_SUNSET            <-> _MSG(libelle="Le soleil se couche", notif_sms);
- #define MSG_METEO_DU_JOUR_1   <-> _MSG(type=etat,libelle="De $METEO_API:DAY0_TEMP_MIN à $METEO_API:DAY0_TEMP_MAX, gel=$METEO_API:DAY0_PROBA_GEL, pluie=$METEO_API:DAY0_PROBA_PLUIE", notif_sms);
- #define MSG_METEO_DU_JOUR_2   <-> _MSG(type=etat,libelle="vents $METEO_API:DAY0_VENT_A_10M, rafale à $METEO_API:DAY0_RAFALE_VENT", notif_sms);
+ #define MSG_METEO_DU_JOUR     <-> _MSG(type=etat,libelle="La météo du jour: entre $METEO_API:DAY0_TEMP_MIN et $METEO_API:DAY0_TEMP_MAX.", notif_sms);
+ #define MSG_PROBA_DU_JOUR     <-> _MSG(type=etat,libelle="Les probas du jour: gel=$METEO_API:DAY0_PROBA_GEL, pluie=$METEO_API:DAY0_PROBA_PLUIE.", notif_sms);
+ #define MSG_VENT_DU_JOUR      <-> _MSG(type=etat,libelle="Les vents: en moyenne $METEO_API:DAY0_VENT_A_10M, rafale à $METEO_API:DAY0_RAFALE_VENT.", notif_sms);
 
  - METEO_API:SUNRISE -> MSG_SUNRISE;
  - METEO_API:SUNSET  -> MSG_SUNSET;
- - _HEURE = 07:00       -> MSG_METEO_DU_JOUR_1, MSG_METEO_DU_JOUR_2;
+ - _HEURE = 07:00 -> MSG_METEO_DU_JOUR;
+ - _HEURE = 07:00 -> MSG_PROBA_DU_JOUR;
+ - _HEURE = 07:00 -> MSG_VENT_DU_JOUR;
 
 /*----------------------------------------------------------------------------------------------------------------------------*/
