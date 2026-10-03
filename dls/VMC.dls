@@ -25,6 +25,7 @@
   /* Bits de production du module */
   #define DO_ACT_VMC         <-> _A; /* Sortie physique de pilotage de la VMC */
   #define TIME_VMC           <-> _CH(libelle="Temps de marche VMC");
+  #define CH_VMC_JOUR        <-> _CH(libelle="Temps de fonctionnement journalier");
   #define CI_VMC             <-> _CI(libelle="Compteur de manoeuvre VMC");
 
   #define MSG_MODE_AUTO       <-> _MSG(type=etat,libelle="Mode automatique engagé");
@@ -34,6 +35,7 @@
   #define MSG_OFF             <-> _MSG(type=etat,libelle="VMC désactivée");
   #define MSG_NO_EDF          <-> _MSG(type=etat,libelle="VMC désactivée sur absence EDF");
   #define MSG_DMD_EXT_VMC     <-> _MSG(type=etat,libelle="Demande de VMC pour une heure");
+  #define MSG_DOUCHE_DETECTEE <-> _MSG(type=etat,libelle="Douche détectée. Demande de VMC.");
   
   #define VISU_POS_VMC        <-> _I(forme="vmc",libelle="VMC");
   #define VISU_MODE_AUTO      <-> _I(forme="auto_manu",libelle="Mode de fonctionnement de la VMC");
@@ -44,7 +46,8 @@
   #define DMD_EXT_VMC        <-> _B(libelle="Demande exterieure de VMC");
 
   #define TR_VMC_EXT         <-> _T(daa=36000,dma=0,dMa=0,dad=0,libelle="Temporisation de VMC pendant 1h sur demande externe");
-
+  #define WTD_DOUCHE_DETECTEE <-> _WATCHDOG(libelle="Detection d'une douche");
+  
                                     /*******************************************/
  /***********************************                 EVENEMENTS                ***********************************/
                                     /*******************************************/
@@ -71,7 +74,7 @@
  /***********************************              FONCTIONS PILOTEES           ***********************************/
                                     /*******************************************/
  
- /*************************************/
+/*************************************/
 /* Demande de chauffe exceptionnelle */
 /*************************************/
   - VISU_BOUTON_IO_CLIC ->
@@ -81,6 +84,12 @@
     }
   - DMD_EXT_VMC            -> TR_VMC_EXT, MSG_DMD_EXT_VMC;
   -/MODE_AUTO + TR_VMC_EXT ->/DMD_EXT_VMC;
+
+/*************************************/
+/* Detection douche                  */
+/*************************************/
+  - TEMP:ECS >= 38.0    -> WTD_DOUCHE_DETECTEE(consigne=36000); /* Consigne 1 heure glissantes pour une douche */
+  - WTD_DOUCHE_DETECTEE -> MSG_DOUCHE_DETECTEE;
   
  /* ORDRES DU MODULE ----------------------------------------------------------*/
  
@@ -109,15 +118,16 @@
      { switch
         | - SHELLY_EDF:EM10_VOLTAGE  < 220.0     ->/ME_WANT_VMC, MSG_NO_EDF;
         | - DMD_EXT_VMC                          -> ME_WANT_VMC;
-        | - _HEURE >= 06:00 . _HEURE <= 09:00    -> ME_WANT_VMC;
+        | - WTD_DOUCHE_DETECTEE                  -> ME_WANT_VMC;
+        /*| - _HEURE >= 06:00 . _HEURE <= 09:00    -> ME_WANT_VMC;*/
         | - _HEURE >= 12:30 . _HEURE <= 14:00    -> ME_WANT_VMC;
-        | - _HEURE >= 19:00 . _HEURE <= 20:00    -> ME_WANT_VMC;
+        /*| - _HEURE >= 19:00 . _HEURE <= 20:00    -> ME_WANT_VMC;*/
         | - -> /ME_WANT_VMC;
      }
 
 /* DETECTION DIFFERENCE ETAT ATTENDU ET ETAT REEL */
  switch
-  | - MEMSA_OK . ME_WANT_VMC -> DO_ACT_VMC, CI_VMC, TIME_VMC;
+  | - MEMSA_OK . ME_WANT_VMC -> DO_ACT_VMC, CI_VMC, TIME_VMC, CH_VMC_JOUR;
   | -                        ->/DO_ACT_VMC;
 
 /* REPORT MESSAGE ETAT */
@@ -139,5 +149,7 @@ switch
  - MODE_AUTO                             -> MSG_MODE_AUTO, VISU_MODE_AUTO(libelle="Mode AUTO",   mode="auto");
  -/MODE_AUTO                             -> MSG_MODE_MANU, VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu",cligno);
 
+ - _HEURE = 23:59 -> CH_VMC_JOUR(reset);
+ 
 /*-------------------------------------------------------------------------------------------------------------------------------*/
 
