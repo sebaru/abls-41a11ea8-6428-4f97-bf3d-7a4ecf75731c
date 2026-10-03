@@ -1,0 +1,44 @@
+ #define VISUEL_AUTO_MANU <-> _VISUEL ( forme="auto_manu", mode="auto", libelle="Mode de l'arrosage" );
+ #define VISUEL_ARROSAGE_PELOUSE <-> _VISUEL ( forme="arrosage_pelouse", libelle="Arrosage pelouse", mode="off" );
+ #define VISUEL_ARROSAGE_POTAGER <-> _VISUEL ( forme="arrosage_potager", libelle="Arrosage potager", mode="off" );
+ 
+ #define B_MODE_AUTO <-> _B (groupe=1, libelle="Mode de gestion de l'arrosage: automatique");
+ #define B_MODE_MANU <-> _B (groupe=1, libelle="Mode de gestion de l'arrosage: manuel");
+
+ #define MSG_MODE_AUTO <-> _MSG ( type=etat, libelle="Arrosage en mode automatique" );
+ #define MSG_MODE_MANU <-> _MSG ( type=etat, libelle="Arrosage en mode manuel" );
+
+ #define WTD_ARROSAGE_PELOUSE <-> _WATCHDOG ( libelle="Consigne d'arrosage pelouse" );
+
+ switch
+  | - /VISUEL_AUTO_MANU_CLIC -> _NOP;
+  | - B_MODE_AUTO            -> B_MODE_MANU;
+  | -                        -> B_MODE_AUTO;
+
+ - B_MODE_AUTO -> VISUEL_AUTO_MANU(libelle="Arrosage en mode AUTO", mode="auto"), MSG_MODE_AUTO;
+ - B_MODE_MANU -> VISUEL_AUTO_MANU(libelle="Arrosage en MANUEL",    mode="manu"), MSG_MODE_MANU;
+ 
+ switch 
+  | - VANNE_PELOUSE:B_MTCE                          -> VISUEL_ARROSAGE_PELOUSE(libelle="Arrosage pelouse en maintenance", mode="on", disable);
+  /*| - pompe a l'arret -> arrosage a l'arret;*/
+  | - B_MODE_AUTO . VANNE_PELOUSE:B_VANNE_IS_OPENED -> VISUEL_ARROSAGE_PELOUSE(libelle="Arrosage pelouse en cours", mode="on" );
+  | - B_MODE_AUTO ./VANNE_PELOUSE:B_VANNE_IS_OPENED -> VISUEL_ARROSAGE_PELOUSE(libelle="Arroser pelouse pour 10 minutes", mode="off" );
+  | - B_MODE_MANU . VANNE_PELOUSE:B_VANNE_IS_OPENED -> VISUEL_ARROSAGE_PELOUSE(libelle="Arrosage pelouse forcée par commande manuelle", mode="on" );
+  | -                                               -> VISUEL_ARROSAGE_PELOUSE(libelle="Arroser la pelouse", mode="off");
+
+ - B_MODE_MANU ->
+   { - /WTD_ARROSAGE_PELOUSE . VISUEL_ARROSAGE_PELOUSE_CLIC -> WTD_ARROSAGE_PELOUSE ( consigne = 6000 ); /* 10 minutes */
+     -  WTD_ARROSAGE_PELOUSE . VISUEL_ARROSAGE_PELOUSE_CLIC -> WTD_ARROSAGE_PELOUSE ( consigne = 0 );
+   }
+ - B_MODE_AUTO ->
+   { - /WTD_ARROSAGE_PELOUSE . _HEURE = 21:00 -> WTD_ARROSAGE_PELOUSE ( consigne = 6000 ); /* 10 minutes */
+   }
+ 
+/* Code de commande */
+ - WTD_ARROSAGE_PELOUSE -> VANNE_PELOUSE:DI_DLS_WANT_TO_OPEN;
+ - WTD_ARROSAGE_PELOUSE . VANNE_PELOUSE:B_VANNE_IS_OPENED -> _NOP; /*POMPE_ARROSAGE:DI_DLS_WANT_TO_START;*/
+
+ - WTD_ARROSAGE_PELOUSE -> VANNE_PELOUSE:DI_DLS_WANT_TO_CLOSE;
+ -/WTD_ARROSAGE_PELOUSE -> _NOP; /* POMPE_ARROSAGE:DI_DLS_WANT_TO_STOP; */
+ 
+ 
