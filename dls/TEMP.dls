@@ -14,7 +14,8 @@
   #define MUR_SUD       <-> _AI; /* Température Mur sud (derrière doublage) */
   #define FUMEE         <-> _AI; /* Température des fumées du poële */
   #define BUREAU        <-> _AI; /* Température du bureau */
-
+  #define ECS           <-> _AI; /* Température du Garage */
+  
   #define OTXT_TEMP     <-> _DI; /* Demande SMS ou IMSG de température */
 
   #define MSG_TEMP_JARDIN_MATIN <-> _MSG (libelle="Ce matin, il fait $TEMP:JARDIN.");
