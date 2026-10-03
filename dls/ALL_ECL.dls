@@ -1,3 +1,6 @@
+ #define VISU_BOUTON_ALL_OFF <-> _I ( forme="ampoule", mode="tout_eteindre", libelle="Eteindre toutes les lampes" );
+ #define VISU_BOUTON_ALL_ON  <-> _I ( forme="ampoule", mode="tout_allumer", libelle="Allumer toutes les lampes" );
+     
  #link CHRDC_ECL:VISU_POS_TL;
  #link COUR_ECL:VISU_POS_TL;
  #link JARDIN_ECL:VISU_POS_TL;
@@ -9,10 +12,7 @@
  
  #define O_DLS_ALL_OFF <-> _DI; /* Ordre de toute eteindre depuis DLS */
  #define O_DLS_ALL_ON  <-> _DI; /* Ordre de toute allumer  depuis DLS */
- 
- #define VISU_BOUTON_ALL_ON  <-> _I ( forme="ampoule", mode="tout_allumer", libelle="Allumer toutes les lampes" );
- #define VISU_BOUTON_ALL_OFF <-> _I ( forme="ampoule", mode="tout_eteindre", libelle="Eteindre toutes les lampes" );
-          
+    
  - _TRUE -> VISU_BOUTON_ALL_ON, VISU_BOUTON_ALL_OFF;
  
  - VISU_BOUTON_ALL_OFF_CLIC + O_DLS_ALL_OFF -> 
