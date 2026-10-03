@@ -1,11 +1,25 @@
  #define OUT_POWER          <-> _AO;
  #define REAL_CURRENT       <-> _AI;
- #define MSG_TOO_MUCH       <-> _MSG(type=defaut, libelle="Trop de production PPV01 $CEAU_PPV:PUISSANCE."); 
+ #define MSG_IS_RUNNING     <-> _MSG(type=etat, libelle="Routeur activé."); 
+ #define MSG_NOT_RUNNING    <-> _MSG(type=etat, libelle="Routeur désactivé."); 
+ #define MSG_TOO_MUCH       <-> _MSG(type=defaut, libelle="Trop de production PPV01 $CEAU_PPV:PUISSANCE.", notif_sms); 
+ #define MSG_BALLON_TOO_HOT <-> _MSG(type=alarme, libelle="Inhib sur ballon trop chaud: $TEMP:BALLON_HAUT.", notif_sms); 
+ #define MSG_UPS_OFF_GRID   <-> _MSG(type=defaut, libelle="Inhib sur UPS off grid."); 
+ #define MSG_MODE_AUTO      <-> _MSG(type=etat,   libelle="Routeur en mode automatique."); 
+ #define MSG_MODE_MANU      <-> _MSG(type=etat,   libelle="Routeur en mode manuel."); 
+
+ #define IS_RUNNING         <-> _B ( libelle="TRUE si le procédé est running" );
+ #define INHIB              <-> _B ( libelle="TRUE si le procédé doit être inhibé" );
+ #define MODE_MANU          <-> _B ( libelle="TRUE si le routeur est en mode manuel" ); 
+ #define VISUEL_ON          <-> _I(forme="switch", mode="off", libelle="Routeur Solaire" );
+ #define VISUEL_MODE        <-> _I(forme="auto_manu", mode="manu", libelle="Mode du Routeur" );
 
  #define PUISSANCE          <-> _REGISTRE(libelle="Puissance du chauffe eau", unite="W" );
  #define VISUEL_PUISSANCE   <-> _I(forme="cadran", mode="progress-rov", libelle="Puissance du chauffe eau", min=0.0, max=4000.0, seuil_ntb=100.0, seuil_nb=200.0, decimal=0, input=PUISSANCE );
 
  #define VOLTAGE_CONSIGNE   <-> _REGISTRE(libelle="Voltage de commande 0-10V", unite="V");
+ #define VISUEL_CONSIGNE    <-> _I(forme="cadran", mode="progress-rov", libelle="Consigne 0/10V", min=0.0, max=10.0, seuil_ntb=1.0, seuil_nb=3.0, decimal=1, input=VOLTAGE_CONSIGNE );
+
  #define VOLTAGE_MAX        <-> _REGISTRE(libelle="Voltage max de commande 0-10V", unite="V");
  #define VOLTAGE_MIN        <-> _REGISTRE(libelle="Voltage min de commande 0-10V", unite="V");
 
@@ -15,17 +29,48 @@
      - 0.0    -> VOLTAGE_CONSIGNE;
    }
 
- - TOP_1SEC -> /* Calcul 5 fois par secondes */
-   { - SHELLY_EDF:EM10_ACT_POWER <  0.0 -> { - VOLTAGE_CONSIGNE + 0.3 -> VOLTAGE_CONSIGNE; }
-     - SHELLY_EDF:EM10_ACT_POWER >= 0.0 -> { - VOLTAGE_CONSIGNE - 0.1 -> VOLTAGE_CONSIGNE; }
+ - /IS_RUNNING -> VISUEL_ON(mode="off", libelle="Routeur désactivé" ), MSG_NOT_RUNNING;
+ -  IS_RUNNING -> VISUEL_ON(mode="on",  libelle="Routeur activé" ),    MSG_IS_RUNNING;
+ -  MODE_MANU  -> VISUEL_MODE( mode="manu", libelle="Routeur en mode manuel" ),      MSG_MODE_MANU, VISUEL_CONSIGNE(rw);
+ - /MODE_MANU  -> VISUEL_MODE( mode="auto", libelle="Routeur en mode automatique" ), MSG_MODE_AUTO, VISUEL_CONSIGNE(noshow);
+
+/* Changement de l'etat ON/OFF */
+ switch
+  | -/VISUEL_ON_CLIC -> _NOP;
+  | - IS_RUNNING     ->/IS_RUNNING;
+  | -                -> IS_RUNNING;
+
+/* Changement de mode AUTO / MANU */
+ switch
+  | -/VISUEL_MODE_CLIC -> _NOP;
+  | - MODE_MANU        ->/MODE_MANU;
+  | -                  -> MODE_MANU;
+  
+ -/MODE_MANU . TOP_1SEC -> /* Calcul 5 fois par secondes au regard de l'active power EDF */
+   { - SHELLY_EDF:EM10_ACT_POWER <   0.0 -> { - VOLTAGE_CONSIGNE + 0.2 -> VOLTAGE_CONSIGNE; } /* en cas d'injection */
+     - SHELLY_EDF:EM10_ACT_POWER >=100.0 -> { - VOLTAGE_CONSIGNE - 0.1 -> VOLTAGE_CONSIGNE; } /* en cas de conso excessive */
+     /* Garde fou */
    }
 
- - TEMP:BALLON_HAUT >= 75.0 -> { - VOLTAGE_CONSIGNE -> VOLTAGE_MIN; } /* Sécurité temperature ballon trop haute */
+/* Critères d'arret prioritaire de la chauffe */
+ switch
+  | - TEMP:BALLON_HAUT >= 80.0 -> INHIB, MSG_BALLON_TOO_HOT; /* Sécurité température ballon trop haute -> on arrete la chauffe */
+  | - UPS:SET_OFF_GRID         -> INHIB, MSG_UPS_OFF_GRID;   /* Si test batterie onduleur */
+  | -                          ->/INHIB;                     /* Sinon, pas d'inhib */
+ 
+/* Critères d'arret prioritaire de la chauffe */
+ - INHIB + /IS_RUNNING -> { - VOLTAGE_MIN -> VOLTAGE_CONSIGNE; } /* Si pas running ou inhibé */
+
+/* Check aux bornes */
  - VOLTAGE_CONSIGNE > VOLTAGE_MAX -> { - VOLTAGE_MAX -> VOLTAGE_CONSIGNE; }
  - VOLTAGE_CONSIGNE < VOLTAGE_MIN -> { - VOLTAGE_MIN -> VOLTAGE_CONSIGNE; }
 
+/* Si au max du max, on previent le user */ 
  - VOLTAGE_CONSIGNE = VOLTAGE_MAX -> MSG_TOO_MUCH;
 
- - VOLTAGE_CONSIGNE -> OUT_POWER; /* Pilotage de la sortie 0-10V avec la courbe de commande adaptée */
+/* Pilotage de la sortie 0-10V avec la courbe de commande adaptée */
+ - VOLTAGE_CONSIGNE -> OUT_POWER; 
+
+/* Calcul de la puissance fournie */
  - REAL_CURRENT * SHELLY_EDF:EM10_VOLTAGE -> PUISSANCE;
  
