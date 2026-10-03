@@ -1,0 +1,2 @@
+
+#define VISUEL_TEMP <-> _VISUEL ( mode="texte", input=TEMP:CUISINE );
