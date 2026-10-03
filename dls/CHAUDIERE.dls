@@ -31,6 +31,7 @@
   #define MDEF_TRAVAIL_PAC   <-> _B(libelle="Memorisation du defaut travail non acquitte du TL");
   #define MDEF_TRAVAIL_F_PAC <-> _B(libelle="Memorisation du defaut travail acquitte (Fixe) du TL");
   #define CH_CHAUDIERE       <-> _CH(libelle="Temps de marche Chaudière");
+  #define CH_CHAUDIERE_JOUR  <-> _CH(libelle="Temps de marche Chaudière journalière");
   #define CI_CHAUDIERE       <-> _CI(libelle="Compteur de manoeuvre TL Chaudière");
   #define DMD_EXT_CHAUFFE    <-> _B(libelle="Demande exterieure de chauffe");
 
@@ -160,16 +161,19 @@
 /**************** Visuels *****************/
  switch
   | - MEMSA_DEFAUT + MEMSA_DEFAUT_FIXE -> VISU_POS_TELE(libelle="Chaudière en défaut",  mode="off", cligno);
+  | - DI_POS_TELE . DMD_EXT_CHAUFFE    -> VISU_POS_TELE(libelle="Chaudière activée pour une heure", mode="on");
   | - DI_POS_TELE                      -> VISU_POS_TELE(libelle="Chaudière activée",    mode="on");
   | -                                  -> VISU_POS_TELE(libelle="Chaudière désactivée", mode="off");
 
 /**************** Messages et visuels ****************/
  - MODE_AUTO                             -> MSG_MODE_AUTO, VISU_MODE_AUTO(libelle="Mode AUTO",   mode="auto");
- -/MODE_AUTO                             -> MSG_MODE_MANU, VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu",cligno);
+ -/MODE_AUTO                             -> MSG_MODE_MANU, VISU_MODE_AUTO(libelle="Mode Manuel", mode="manu", cligno);
 
- - DI_POS_TELE                           -> CH_CHAUDIERE, MSG_ON;
+ - DI_POS_TELE                           -> CH_CHAUDIERE, CH_CHAUDIERE_JOUR, MSG_ON;
  -/DI_POS_TELE                           -> MSG_OFF;
  - MDEF_REPOS_PAC + MDEF_REPOS_F_PAC     -> MSG_DEF_REPOS;
  - MDEF_TRAVAIL_PAC + MDEF_TRAVAIL_F_PAC -> MSG_DEF_TRAVAIL;
 
+ - _HEURE = 23:59 -> CH_CHAUDIERE_JOUR(reset);
+ 
 /******************************************/
