@@ -1,1 +1,2 @@
 #link VMC:VISU_BOUTON_IO;
+#define VISUEL_TEMP <-> _VISUEL(mode="texte", input=TEMP:SDB_1ER);
