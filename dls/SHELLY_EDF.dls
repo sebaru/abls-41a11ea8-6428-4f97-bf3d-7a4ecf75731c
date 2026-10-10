@@ -87,6 +87,9 @@
 /*------------------------------------------ Définition des bits locaux au module --------------------------------------------*/
  #define VISU_THREAD  <-> _I(forme="check", libelle="Module SHELLY");
 
+ #define VISUEL_CONSOMMATION <-> _I(forme="cadran", mode="progress-vor", min=0,max=1000,seuil_nh=0,seuil_nth=500, input=EM10_ACT_POWER);
+ #define VISUEL_INJECTION    <-> _I(forme="cadran", mode="progress-vor", min=0,max=10,seuil_nh=2,seuil_nth=4, input=EM10_INJECTION);
+
 /*------------------------------------------------- Logique fonctionnelle ----------------------------------------------------*/
 
  - IO_COMM -> VISU_THREAD(mode="checked", libelle="SHELLY_EDF connecté");
