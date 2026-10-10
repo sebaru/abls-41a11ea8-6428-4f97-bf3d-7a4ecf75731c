@@ -44,7 +44,7 @@
  #define EM11_RESET_INDEX_OUT  <-> _DO(libelle="Canal 1 : Réinitialiser l'index d'énergie injectée");
 
 /*------------------------------------------ SHELLY PRO 3 EM (triphasé) ------------------------------------------------------*/
- #define U1                    <-> _AI(libelle="Tension phase 1");
+/* #define U1                    <-> _AI(libelle="Tension phase 1");
  #define U2                    <-> _AI(libelle="Tension phase 2");
  #define U3                    <-> _AI(libelle="Tension phase 3");
  #define I1                    <-> _AI(libelle="Courant phase 1");
@@ -82,7 +82,7 @@
  #define RESET_INDEX_IN3       <-> _DO(libelle="Réinitialiser l'index d'énergie consommée phase 3");
  #define RESET_INDEX_OUT1      <-> _DO(libelle="Réinitialiser l'index d'énergie injectée phase 1");
  #define RESET_INDEX_OUT2      <-> _DO(libelle="Réinitialiser l'index d'énergie injectée phase 2");
- #define RESET_INDEX_OUT3      <-> _DO(libelle="Réinitialiser l'index d'énergie injectée phase 3");
+ #define RESET_INDEX_OUT3      <-> _DO(libelle="Réinitialiser l'index d'énergie injectée phase 3");*/
 
 /*------------------------------------------ Définition des bits locaux au module --------------------------------------------*/
  #define VISU_THREAD  <-> _I(forme="check", libelle="Module SHELLY");
