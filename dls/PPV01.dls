@@ -9,10 +9,10 @@
  #define VISUEL_ARRET_PRODUCTION  <-> _I(forme="switch",mode="off",libelle="Production solaire");
 
  #define PRODUCTION               <-> _R(libelle="Production d'energie", unite="W");
- #define VISUEL_PRODUCTION        <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=50,seuil_nb=100, input=PRODUCTION);
+ #define VISUEL_PRODUCTION        <-> _I(forme="cadran", mode="progress-rov", decimal=0, min=0,max=1400,seuil_ntb=50,seuil_nb=100, input=PRODUCTION);
 
  #define INTENSITE                <-> _AI(libelle="Intensité instantanée des panneaux PPV01");
- #define VISUEL_INTENSITE         <-> _I(forme="cadran", mode="progress-rov",min=0,max=6,seuil_ntb=0.2,seuil_nb=0.5, input=INTENSITE); /* Intensité instantanée des panneaux PPV01 */
+ #define VISUEL_INTENSITE         <-> _I(forme="cadran", mode="progress-rov",decimal=2,min=0,max=6,seuil_ntb=0.2,seuil_nb=0.5, input=INTENSITE); /* Intensité instantanée des panneaux PPV01 */
  #define MSG_INTENSITE_NOTINRANGE <-> _MSG(type=defaut,libelle="Intensité instantanée Not In Range !");
 
                                     /*******************************************/
