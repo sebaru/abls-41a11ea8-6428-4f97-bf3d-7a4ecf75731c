@@ -43,13 +43,15 @@
     }
 
  switch
-  | - B_ARRET_PRODUCTION -> DO_ARRET_PRODUCTION,
-                            VISUEL_ARRET_PRODUCTION(mode="off",  libelle="Solaire désactivée"),
-                            MSG_DISABLE;
-  | -                    ->/DO_ARRET_PRODUCTION,
-                            VISUEL_ARRET_PRODUCTION(mode="on", libelle="Solaire activée"),
-                            MSG_ENABLE;
+  | - B_ARRET_PRODUCTION + _HEURE >= 22:00 + _HEURE <= 05:00 -> DO_ARRET_PRODUCTION;
+  | -                                                        ->/DO_ARRET_PRODUCTION;
 
+ switch
+  | - DO_ARRET_PRODUCTION -> VISUEL_ARRET_PRODUCTION(mode="off",  libelle="Solaire désactivée"),
+                             MSG_DISABLE;
+  | -                     -> VISUEL_ARRET_PRODUCTION(mode="on", libelle="Solaire activée"),
+                             MSG_ENABLE;
+                            
  - /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
 
  - SHELLY_EDF:EM10_VOLTAGE * INTENSITE -> PRODUCTION;
