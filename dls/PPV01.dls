@@ -1,14 +1,17 @@
- #define ENABLE      <-> _DI; /* Retour Télérupteur branchement Panneaux Photovoltaïques */
  #define MSG_ENABLE  <-> _MSG(type=etat,libelle="Panneaux Photovoltaïques branchés au réseau EDF.");
  #define MSG_DISABLE <-> _MSG(type=etat,libelle="Panneaux Photovoltaïques NON branchés au réseau EDF.");
 
  #define TICK_WH     <-> _DI; /* 1 Wh par Impulsion */
  #define CI_WH       <-> _CI(libelle="Nombre de Wh récupéré");
- 
- #define PRODUCTION  <-> _R(libelle="Production d'energie", unite="W");
- #define VISUEL_PRODUCTION <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=50,seuil_nb=100, input=PRODUCTION);
- 
- #define INTENSITE                <-> _AI; /* Intensité instantanée des panneaux PPV01 */
+
+ #define B_ARRET_PRODUCTION       <-> _B(libelle="Demande de désactivation de la production solaire");
+ #define DO_ARRET_PRODUCTION      <-> _DO(libelle="Commande du contacteur NF de coupure solaire");
+ #define VISUEL_ARRET_PRODUCTION  <-> _I(forme="switch",mode="off",libelle="Production solaire");
+
+ #define PRODUCTION               <-> _R(libelle="Production d'energie", unite="W");
+ #define VISUEL_PRODUCTION        <-> _I(forme="cadran", mode="progress-rov", min=0,max=1400,seuil_ntb=50,seuil_nb=100, input=PRODUCTION);
+
+ #define INTENSITE                <-> _AI(libelle="Intensité instantanée des panneaux PPV01");
  #define INTENSITE_CALCUL         <-> _REGISTRE(libelle="Intensité calculée sans la conso de fonctionnement", unite="A");
  #define VISUEL_INTENSITE         <-> _I(forme="cadran", mode="progress-rov",min=0,max=6,seuil_ntb=0.2,seuil_nb=0.5, input=INTENSITE_CALCUL); /* Intensité instantanée des panneaux PPV01 */
  #define MSG_INTENSITE_NOTINRANGE <-> _MSG(type=defaut,libelle="Intensité instantanée Not In Range !");
@@ -19,7 +22,7 @@
 /* SYNTHESES DEFAUTS ---------------------------------------------------------*/
  /* DEFAUTS */
   -_FALSE                                 -> MEMSA_DEFAUT;
- 
+
  /* DEFAUTS FIXES */
   -_FALSE                                 -> MEMSA_DEFAUT_FIXE;
 
@@ -33,16 +36,23 @@
                                      /*******************************************/
  /***********************************              FONCTIONS PILOTEES           ***********************************/
                                     /*******************************************/
- 
- - /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
- - ENABLE  -> MSG_ENABLE;
- -/ENABLE  -> MSG_DISABLE;
 
- - SYS:TOP_5HZ ->
-  { - INTENSITE >= 0.15 -> { - INTENSITE - 0.15 -> INTENSITE_CALCUL; }
-    - INTENSITE <  0.15 -> { - 0.0 -> INTENSITE_CALCUL; }
-    - SHELLY_EDF:EM10_VOLTAGE * INTENSITE_CALCUL -> PRODUCTION;
-  }
-  
+ - VISUEL_ARRET_PRODUCTION_CLIC ->
+    { switch
+       | -/B_ARRET_PRODUCTION -> B_ARRET_PRODUCTION;
+       | -                    ->/B_ARRET_PRODUCTION;
+    }
+
+ switch
+  | - DO_ARRET_PRODUCTION -> DO_ARRET_PRODUCTION,
+                             VISUEL_ARRET_PRODUCTION(mode="on",  libelle="Solaire désactivée"),
+                             MSG_DISABLE;
+  | -                     ->/DO_ARRET_PRODUCTION,
+                             VISUEL_ARRET_PRODUCTION(mode="off", libelle="Solaire activée"),
+                             MSG_ENABLE;
+
+ - /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
+
+ - SHELLY_EDF:EM10_VOLTAGE * INTENSITE -> PRODUCTION;
+
  - TICK_WH -> CI_WH;
- 
