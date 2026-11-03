@@ -4,7 +4,8 @@
  #define TICK_WH     <-> _DI; /* 1 Wh par Impulsion */
  #define CI_WH       <-> _CI(libelle="Nombre de Wh récupéré");
 
- #define B_ARRET_PRODUCTION       <-> _B(libelle="Demande de désactivation de la production solaire");
+ #define B_USER_BLACKOUT          <-> _B(libelle="Demande de désactivation de la production solaire par le user");
+ #define M_TIME_BLACKOUT          <-> _M(libelle="Blackout production solaire sur créneau horaire");
  #define DO_ARRET_PRODUCTION      <-> _DO(libelle="Commande du contacteur NF de coupure solaire");
  #define VISUEL_ARRET_PRODUCTION  <-> _I(forme="switch",mode="off",libelle="Production solaire");
 
@@ -36,24 +37,28 @@
  /***********************************              FONCTIONS PILOTEES           ***********************************/
                                     /*******************************************/
 
+/* Gestion du blackout par le user */
  - VISUEL_ARRET_PRODUCTION_CLIC ->
     { switch
-       | -/B_ARRET_PRODUCTION -> B_ARRET_PRODUCTION;
-       | -                    ->/B_ARRET_PRODUCTION;
+       | -/B_USER_BLACKOUT -> B_USER_BLACKOUT;
+       | -                 ->/B_USER_BLACKOUT;
     }
 
+/* Gestion du blackout par le temps */
+ - _HEURE >= 22:00 + _HEURE <= 05:00 -> M_TIME_BLACKOUT;
+ 
+/* Calcul de l'état attendu du contacteur */
  switch
-  | - B_ARRET_PRODUCTION + _HEURE >= 22:00 + _HEURE <= 05:00 -> DO_ARRET_PRODUCTION;
-  | -                                                        ->/DO_ARRET_PRODUCTION;
+  | - B_USER_BLACKOUT + M_TIME_BLACKOUT -> DO_ARRET_PRODUCTION;
+  | -                                   ->/DO_ARRET_PRODUCTION;
 
+/* Commande du contacteur */
  switch
-  | - DO_ARRET_PRODUCTION -> VISUEL_ARRET_PRODUCTION(mode="off",  libelle="Solaire désactivée"),
-                             MSG_DISABLE;
-  | -                     -> VISUEL_ARRET_PRODUCTION(mode="on", libelle="Solaire activée"),
-                             MSG_ENABLE;
+  | - DO_ARRET_PRODUCTION -> VISUEL_ARRET_PRODUCTION(mode="off", libelle="Solaire désactivée"), MSG_DISABLE;
+  | -                     -> VISUEL_ARRET_PRODUCTION(mode="on",  libelle="Solaire activée"),    MSG_ENABLE;
                             
  - /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
 
+/* Calcul de la production */
  - SHELLY_EDF:EM10_VOLTAGE * INTENSITE -> PRODUCTION;
-
  - TICK_WH -> CI_WH;
