@@ -9,6 +9,12 @@
  #define IO_COMM      <-> _WATCHDOG(libelle="Etat communication avec le serveur OZOCUISINE");
  #define MSG_COMM_NOK <-> _MSG(type=danger, libelle="Serveur OZOCUISINE hors service", notif_sms=yes, notif_chat=yes );
 
+/* Bits communs créés par chaque agent */
+ #define TOUR_PAR_SEC    <-> _AI(libelle="Nombre de tours par seconde");
+ #define MEMORY_RSS      <-> _AI(libelle="Mémoire RSS");
+ #define MEMORY_VIRTUAL  <-> _AI(libelle="Mémoire virtuelle");
+ #define LOG_PAR_MIN     <-> _AI(libelle="Logs par minute");
+
 /*------------------------------------------ Définition des bits locaux au module --------------------------------------------*/
  #define VISU_THREAD  <-> _I(forme="check", libelle="Serveur");
 
@@ -16,7 +22,7 @@
 
  - IO_COMM -> VISU_THREAD(mode="checked", libelle="OZOCUISINE connecté");
  -/IO_COMM -> MEMSA_DEFAUT, MEMSSP_DANGER,
-              VISU_THREAD(mode="unchecked", cligno, libelle="OZOCUISINE déconnecté"),
+              VISU_THREAD(mode="unchecked", libelle="OZOCUISINE déconnecté"),
               MSG_COMM_NOK;
 
 /* Pilotage des bits de remontées */
