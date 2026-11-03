@@ -47,17 +47,23 @@
 /* Gestion du blackout par le temps */
  - _HEURE >= 22:00 + _HEURE <= 05:00 -> M_TIME_BLACKOUT;
  
-/* Calcul de l'état attendu du contacteur */
+/* Bouton de commande du user blackout */
+ switch
+  | - DO_ARRET_PRODUCTION . B_USER_BLACKOUT -> VISUEL_ARRET_PRODUCTION(mode="off", libelle="Solaire désactivé");
+  | - DO_ARRET_PRODUCTION . M_TIME_BLACKOUT -> VISUEL_ARRET_PRODUCTION(mode="off", libelle="Solaire désactivé sur tranche horaire");
+  | -                                       -> VISUEL_ARRET_PRODUCTION(mode="on",  libelle="Solaire activé");
+
+/* Report de l'état attendu du contacteur */
  switch
   | - B_USER_BLACKOUT + M_TIME_BLACKOUT -> DO_ARRET_PRODUCTION;
   | -                                   ->/DO_ARRET_PRODUCTION;
 
-/* Commande du contacteur */
+/* Envoi des messages */
  switch
-  | - DO_ARRET_PRODUCTION -> VISUEL_ARRET_PRODUCTION(mode="off", libelle="Solaire désactivée"), MSG_DISABLE;
-  | -                     -> VISUEL_ARRET_PRODUCTION(mode="on",  libelle="Solaire activée"),    MSG_ENABLE;
-                            
- - /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
+  | - DO_ARRET_PRODUCTION -> MSG_DISABLE;
+  | -                     -> MSG_ENABLE;
+
+- /INTENSITE(in_range) -> MSG_INTENSITE_NOTINRANGE;
 
 /* Calcul de la production */
  - SHELLY_EDF:EM10_VOLTAGE * INTENSITE -> PRODUCTION;
