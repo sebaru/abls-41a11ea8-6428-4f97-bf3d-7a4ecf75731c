@@ -22,7 +22,7 @@
 
  - IO_COMM -> VISU_THREAD(mode="checked", libelle="SARAPIS connecté");
  -/IO_COMM -> MEMSA_DEFAUT, MEMSSP_DANGER,
-              VISU_THREAD(mode="unchecked", cligno, libelle="SARAPIS déconnecté"),
+              VISU_THREAD(mode="unchecked", libelle="SARAPIS déconnecté"),
               MSG_COMM_NOK;
 
 /* Pilotage des bits de remontées */
